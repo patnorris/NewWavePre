@@ -1,0 +1,51 @@
+type EntityType = 
+ variant {
+   BridgeEntity;
+   Location;
+   Person;
+   Webasset;
+ };
+type EntitySettings = record {};
+type Entity = 
+ record {
+   creationTimestamp: nat64;
+   creator: principal;
+   description: opt text;
+   entityType: EntityType;
+   externalId: opt text;
+   internalId: text;
+   keywords: opt vec text;
+   name: opt text;
+   owner: principal;
+   settings: EntitySettings;
+ };
+type BridgeType = variant {OwnerCreated;};
+type BridgeState = 
+ variant {
+   Confirmed;
+   Pending;
+   Rejected;
+ };
+type BridgeEntity = 
+ record {
+   bridgeType: BridgeType;
+   creationTimestamp: nat64;
+   creator: principal;
+   description: opt text;
+   entityType: EntityType;
+   externalId: opt text;
+   fromEntityId: text;
+   internalId: text;
+   keywords: opt vec text;
+   name: opt text;
+   owner: principal;
+   settings: EntitySettings;
+   state: BridgeState;
+   toEntityId: text;
+ };
+service : {
+  create_bridge: () -> (BridgeEntity);
+  create_entity: () -> (Entity);
+  create_entity_and_bridge: () -> (Entity, BridgeEntity);
+  greet: (text) -> (text);
+}
