@@ -1,8 +1,47 @@
 {
   "__Candid_UI": {
+    "local": "qvhpv-4qaaa-aaaaa-aaagq-cai"
+  },
+  "bridgecreator": {
+    "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
+  },
+  "bridgeregistry": {
     "local": "ryjl3-tyaaa-aaaaa-aaaba-cai"
   },
+  "bridgeretriever": {
+    "local": "r7inp-6aaaa-aaaaa-aaabq-cai"
+  },
+  "bridgesdirectory": {
+    "local": "rkp4c-7iaaa-aaaaa-aaaca-cai"
+  },
+  "bridgesfromentitydirectory": {
+    "local": "rno2w-sqaaa-aaaaa-aaacq-cai"
+  },
+  "bridgespendingdirectory": {
+    "local": "renrk-eyaaa-aaaaa-aaada-cai"
+  },
+  "bridgestoentitydirectory": {
+    "local": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+  },
+  "entityandbridgecreator": {
+    "local": "t6rzw-2iaaa-aaaaa-aaama-cai"
+  },
+  "entityandbridgeretriever": {
+    "local": "wmio3-kqaaa-aaaaa-aaasq-cai"
+  },
+  "entitycreator": {
+    "local": "qoctq-giaaa-aaaaa-aaaea-cai"
+  },
+  "entitydirectory": {
+    "local": "qjdve-lqaaa-aaaaa-aaaeq-cai"
+  },
+  "entityretriever": {
+    "local": "qaa6y-5yaaa-aaaaa-aaafa-cai"
+  },
   "newwave": {
-    "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
+    "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
+  },
+  "test_assets": {
+    "local": "qsgjb-riaaa-aaaaa-aaaga-cai"
   }
 }

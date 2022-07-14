@@ -8,7 +8,11 @@ https://itnext.io/typescript-utilities-for-candid-bf5bdd92a9a3
 https://github.com/dfinity/motoko-base/blob/master/src/Blob.mo
 with HashMap? instead of object type use HashMap input and convert key-value pairs to entity type
 https://github.com/dfinity/motoko-base/blob/master/src/HashMap.mo
-function on Entity to retrieve entityType specific fields
+having HashMap<Text,Text> as a field on Entity gives error: is or contains non-shared type Text -> ()
+function on Entity to retrieve entityType specific fields (or a static field)
+work with JSON: https://github.com/Toniq-Labs/creator-nfts/blob/main/canisters/nft/main.mo
+UI sends in JSON encoded as Blob: https://github.com/Toniq-Labs/creator-nfts/blob/main/frontend/src/canisters/nft/minting.ts
+potentially String / Text also works (i.e. no en-/decoding) --> work with Text for now, probably change to Blob later (after finding out about its potential benefits)
 
 
 # hello

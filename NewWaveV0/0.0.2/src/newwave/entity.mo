@@ -70,28 +70,42 @@ module {
     description : ?Text;
     keywords : ?[Text];
     externalId : ?Text;
+    entitySpecificFields : ?Text;
+    listOfEntitySpecificFieldKeys : [Text];
+    // resolveRepresentedEntity : () -> T; // if possible, generic return value, otherwise probably Text
   };
 
   public type EntityInitiationObject = {
-    _internalId : Text;
-    _creator : Principal;
-    _owner : Principal;
+    _internalId : ?Text;
+    _creator : ?Principal;
+    _owner : ?Principal;
     _settings : ?EntitySettings.EntitySettings;
     _entityType : EntityType.EntityType;
     _name : ?Text;
     _description : ?Text;
     _keywords : ?[Text];
     _externalId : ?Text;
+    _entitySpecificFields : ?Text;
   };
 
   public func Entity(
-    initiationObject : EntityInitiationObject,    
+    initiationObject : EntityInitiationObject,
+    caller : Principal,
   ) : Entity {
     return {
-      internalId : Text = initiationObject._internalId;
+      internalId : Text = switch(initiationObject._internalId) {
+        case null { "" };
+        case (?customId) { customId };
+      };
       creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));
-      creator : Principal = initiationObject._creator;
-      owner : Principal = initiationObject._owner;
+      creator : Principal = switch(initiationObject._creator) {
+        case null { caller };
+        case (?customCreator) { customCreator };
+      };
+      owner : Principal = switch(initiationObject._owner) {
+        case null { caller };
+        case (?customOwner) { customOwner };
+      };
       settings : EntitySettings.EntitySettings = switch(initiationObject._settings) {
         case null { EntitySettings.EntitySettings() };
         case (?customSettings) { customSettings };
@@ -100,7 +114,9 @@ module {
       name : ?Text = initiationObject._name;
       description : ?Text = initiationObject._description;
       keywords : ?[Text] = initiationObject._keywords;
-      externalId : ?Text = initiationObject._externalId;  
+      externalId : ?Text = initiationObject._externalId;
+      entitySpecificFields : ?Text = initiationObject._entitySpecificFields;
+      listOfEntitySpecificFieldKeys : [Text] = [];
     }
   };
   
