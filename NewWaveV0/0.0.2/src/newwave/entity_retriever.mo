@@ -16,8 +16,6 @@ import EntityDirectory "canister:entitydirectory";
 
 actor EntityRetriever {
   public shared ({ caller }) func get_entity(entityId : Text) : async ?Entity.Entity {
-    Debug.print("hello EntityRetriever get_entity");
-    //Debug.print(entityId);
     let entityStorageUnitAddress : ?Principal = await EntityDirectory.getEntityEntry(entityId);
     switch(entityStorageUnitAddress) {
       case null { return null; };
@@ -30,7 +28,6 @@ actor EntityRetriever {
   };
 
   public shared ({ caller }) func get_entities(entityIds : [Text]) : async [Entity.Entity] {
-    Debug.print("hello EntityRetriever get_entity");
     if (entityIds.size() == 0) {
       return [];
     };

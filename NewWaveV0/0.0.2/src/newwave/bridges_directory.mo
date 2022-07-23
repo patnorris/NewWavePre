@@ -31,15 +31,13 @@ import BridgesPendingDirectory "canister:bridgespendingdirectory";
 
 actor BridgesDirectory {
   public shared ({ caller }) func putEntityEntry(bridge : BridgeEntity.BridgeEntity) : async Text {
-    Debug.print("hello BridgesDirectory");
-    // store bridge for entities bridged to and from
-    let bridgedFromStored : Text = await BridgesFromEntityDirectory.putEntityEntry(bridge.fromEntityId, bridge.internalId);
-    let bridgedToStored : Text = await BridgesToEntityDirectory.putEntityEntry(bridge.toEntityId, bridge.internalId);
-    // if bridge state is Pending, store accordingly
-    if (bridge.state == #Pending) { // TODO: probably logic should be Pending or bridgedFromStored & bridgedToStored
+    if (bridge.state == #Pending) { // if bridge state is Pending, store accordingly
       let bridgePendingStored : Text = await BridgesPendingDirectory.putEntityEntry(bridge.internalId, bridge.fromEntityId, bridge.toEntityId);
+    } else {
+      // store bridge for entities bridged to and from
+      let bridgedFromStored : Text = await BridgesFromEntityDirectory.putEntityEntry(bridge.fromEntityId, bridge.internalId);
+      let bridgedToStored : Text = await BridgesToEntityDirectory.putEntityEntry(bridge.toEntityId, bridge.internalId);
     };
-    Debug.print("hello BridgesDirectory before return");
     return bridge.internalId;
   };
 
@@ -56,5 +54,4 @@ actor BridgesDirectory {
     };
     return List.toArray<Text>(bridgeIdsToReturn);
   };
-
 };

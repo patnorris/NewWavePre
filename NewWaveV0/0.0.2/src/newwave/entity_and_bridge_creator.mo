@@ -12,8 +12,7 @@ import EntityCreator "canister:entitycreator";
 import BridgeCreator "canister:bridgecreator";
 
 actor EntityAndBridgeCreator {
-  public shared ({ caller }) func create_entity_and_bridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, BridgeEntity.BridgeEntity) {
-    Debug.print("hello EntityAndBridgeCreator");    
+  public shared ({ caller }) func create_entity_and_bridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, BridgeEntity.BridgeEntity) {  
     let createdEntity : Entity.Entity = await EntityCreator.create_entity(entityToCreate);
     var updatedBridgeToCreate = bridgeToCreate;
     switch(bridgeToCreate._fromEntityId) {
@@ -55,9 +54,6 @@ actor EntityAndBridgeCreator {
       };
     };
     let bridgeEntity : BridgeEntity.BridgeEntity = await BridgeCreator.create_bridge(updatedBridgeToCreate);
-    Debug.print(createdEntity.internalId);
-    Debug.print(Principal.toText(bridgeEntity.owner));
-    Debug.print(bridgeEntity.fromEntityId);
     return (createdEntity, bridgeEntity);
   };
 };

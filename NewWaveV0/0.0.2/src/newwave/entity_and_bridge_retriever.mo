@@ -14,7 +14,6 @@ import BridgeRetriever "canister:bridgeretriever";
 
 actor EntityAndBridgeRetriever {
   public shared ({ caller }) func get_bridged_entities_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Entity.Entity] {
-    Debug.print("hello EntityAndBridgeRetriever get_bridged_entities_by_entity_id");
     let entityBridges : [BridgeEntity.BridgeEntity] = await BridgeRetriever.get_bridges_by_entity_id(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     let bridgedEntityIds : [var Text] = Array.init<Text>(entityBridges.size(), "");
     var i = 0;
@@ -31,7 +30,6 @@ actor EntityAndBridgeRetriever {
   };
 
   public shared ({ caller }) func get_entity_and_bridge_ids(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async (?Entity.Entity, [Text]) {
-    Debug.print("hello EntityAndBridgeRetriever get_entity_and_bridge_ids");
     switch(await EntityRetriever.get_entity(entityId)) {
       case null {
         return (null, []);

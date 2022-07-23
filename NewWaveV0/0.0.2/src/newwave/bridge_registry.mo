@@ -29,12 +29,12 @@ import BridgeRegistryStorageUnit "bridge_registry_storage_unit";
 
 // example from: https://github.com/dfinity/examples/blob/master/motoko/classes/src/map/Buckets.mo
 actor BridgeRegistry {
-  let bridgeRegistryStorageUnits = HashMap.HashMap<Text, BridgeRegistryStorageUnit.BridgeRegistryStorageUnit>(0, Text.equal, Text.hash);
+  stable var stableBridgeRegistryStorageUnits : [(Text, BridgeRegistryStorageUnit.BridgeRegistryStorageUnit)] = [];
+  var bridgeRegistryStorageUnits = HashMap.HashMap<Text, BridgeRegistryStorageUnit.BridgeRegistryStorageUnit>(0, Text.equal, Text.hash);
   let entityIdSubstringForStorageUnitIndexStart = 0;
   let entityIdSubstringForStorageUnitIndexEnd = 2;
 
   public shared ({ caller }) func putEntity(bridge : BridgeEntity.BridgeEntity) : async BridgeEntity.BridgeEntity {
-    Debug.print("hello BridgeRegistry");
     // get correct storageUnitIndex as initial characters from entityId
     let storageUnitIndex : Text = extract(bridge.internalId, entityIdSubstringForStorageUnitIndexStart, entityIdSubstringForStorageUnitIndexEnd);
     // stores in correct bridge_registry_storage_unit (according to id)
@@ -46,9 +46,7 @@ actor BridgeRegistry {
       };
       case (?bridgeRegistryStorageUnit) { bridgeRegistryStorageUnit };
     };
-    Debug.print("hello BridgeRegistry bridgeRegistryStorageUnit");
     let result = await bridgeRegistryStorageUnit.putEntity(bridge);
-    Debug.print("hello BridgeRegistry result");
     return result;
   };
 
@@ -103,4 +101,15 @@ actor BridgeRegistry {
     };
     return r;
   };
+
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    stableBridgeRegistryStorageUnits := Iter.toArray(bridgeRegistryStorageUnits.entries());
+  };
+
+  system func postupgrade() {
+    bridgeRegistryStorageUnits := HashMap.fromIter(Iter.fromArray(stableBridgeRegistryStorageUnits), stableBridgeRegistryStorageUnits.size(), Text.equal, Text.hash);
+    stableBridgeRegistryStorageUnits := [];
+  };
+  // #endregion
 };

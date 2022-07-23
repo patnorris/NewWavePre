@@ -28,13 +28,14 @@ import BridgeEntity "bridge_entity";
 import BridgesDirectoryStorageUnit "bridges_directory_storage_unit";
 
 actor BridgesPendingDirectory {
-  let bridgesFromDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
-  let bridgesToDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
+  stable var stableBridgesFromDirectoryStorageUnits : [(Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit)] = [];
+  stable var stableBridgesToDirectoryStorageUnits : [(Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit)] = [];
+  var bridgesFromDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
+  var bridgesToDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
   let entityIdSubstringForStorageUnitIndexStart = 0;
   let entityIdSubstringForStorageUnitIndexEnd = 2;
 
   public shared ({ caller }) func putEntityEntry(bridgeId : Text, bridgedFromEntityId : Text, bridgedToEntityId : Text) : async Text {
-    Debug.print("hello BridgesPendingDirectory");
     // get correct storageUnitIndex as initial characters from entityId
     let storageUnitIndexFromEntity : Text = extract(bridgedFromEntityId, entityIdSubstringForStorageUnitIndexStart, entityIdSubstringForStorageUnitIndexEnd);
     let storageUnitIndexToEntity : Text = extract(bridgedToEntityId, entityIdSubstringForStorageUnitIndexStart, entityIdSubstringForStorageUnitIndexEnd);
@@ -47,7 +48,6 @@ actor BridgesPendingDirectory {
       };
       case (?bridgesFromDirectoryStorageUnit) { bridgesFromDirectoryStorageUnit };
     };
-    Debug.print("hello BridgesPendingDirectory bridgesFromDirectoryStorageUnit");
     let resultFrom = await bridgesFromDirectoryStorageUnit.putEntityEntry(bridgedFromEntityId, bridgeId);
     let bridgesToDirectoryStorageUnit : BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit = switch(bridgesToDirectoryStorageUnits.get(storageUnitIndexToEntity)) {
       case null {
@@ -57,9 +57,7 @@ actor BridgesPendingDirectory {
       };
       case (?bridgesToDirectoryStorageUnit) { bridgesToDirectoryStorageUnit };
     };
-    Debug.print("hello BridgesPendingDirectory bridgesToDirectoryStorageUnit");
     let resultTo = await bridgesToDirectoryStorageUnit.putEntityEntry(bridgedToEntityId, bridgeId);
-    Debug.print("hello BridgesPendingDirectory result");
     return resultTo;
   };
 
@@ -113,4 +111,17 @@ actor BridgesPendingDirectory {
     return r;
   };
 
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    stableBridgesFromDirectoryStorageUnits := Iter.toArray(bridgesFromDirectoryStorageUnits.entries());
+    stableBridgesToDirectoryStorageUnits := Iter.toArray(bridgesToDirectoryStorageUnits.entries());
+  };
+
+  system func postupgrade() {
+    bridgesFromDirectoryStorageUnits := HashMap.fromIter(Iter.fromArray(stableBridgesFromDirectoryStorageUnits), stableBridgesFromDirectoryStorageUnits.size(), Text.equal, Text.hash);
+    bridgesToDirectoryStorageUnits := HashMap.fromIter(Iter.fromArray(stableBridgesToDirectoryStorageUnits), stableBridgesToDirectoryStorageUnits.size(), Text.equal, Text.hash);
+    stableBridgesFromDirectoryStorageUnits := [];
+    stableBridgesToDirectoryStorageUnits := [];
+  };
+  // #endregion
 };

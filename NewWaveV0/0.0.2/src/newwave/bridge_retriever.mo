@@ -15,22 +15,16 @@ import BridgesDirectory "canister:bridgesdirectory";
 
 actor BridgeRetriever {
   public shared ({ caller }) func get_bridge(entityId : Text) : async ?BridgeEntity.BridgeEntity {
-    Debug.print("hello BridgeRetriever get_bridge");
-    //Debug.print(entityId);
     let bridgeToReturn : ?BridgeEntity.BridgeEntity = await BridgeRegistry.getEntity(entityId);
     return bridgeToReturn;
   };
 
   public shared ({ caller }) func get_bridge_ids_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Text] {
-    Debug.print("hello BridgeRetriever get_bridge_ids_by_entity_id");
-    //Debug.print(entityId);
     let bridgeIdsToReturn = await BridgesDirectory.getEntityEntries(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     return bridgeIdsToReturn;
   };
 
   public shared ({ caller }) func get_bridges_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [BridgeEntity.BridgeEntity] {
-    Debug.print("hello BridgeRetriever get_bridges_by_entity_id");
-    //Debug.print(entityId);
     let bridgeIdsToRetrieve = await get_bridge_ids_by_entity_id(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     let bridgesToReturn = await BridgeRegistry.getEntities(bridgeIdsToRetrieve);
     return bridgesToReturn;

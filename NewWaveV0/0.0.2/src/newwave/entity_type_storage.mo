@@ -33,11 +33,10 @@ actor class EntityTypeStorage(entityType : EntityType.EntityType) {
   type Key = Text;
   type Value = Entity.Entity; // potentially needs to be flexible based on entityType (creates entities of that type)
 
-  let entityStorageUnits = HashMap.HashMap<Text, EntityStorageUnit.EntityStorageUnit>(0, Text.equal, Text.hash);
+  stable var stableEntityStorageUnits : [(Text, EntityStorageUnit.EntityStorageUnit)] = [];
+  var entityStorageUnits = HashMap.HashMap<Text, EntityStorageUnit.EntityStorageUnit>(0, Text.equal, Text.hash);
 
   public shared ({ caller }) func putEntity(k : Key, v : Entity.Entity) : async Text {
-    Debug.print("hello EntityTypeStorage");
-    Debug.print(debug_show(entityType));
     // get correct storageUnitIndex as initial characters from entityId
     let storageUnitIndex : Text = extract(k, 0, 2);
     // stores in correct entity_storage_unit (according to id)
@@ -49,9 +48,7 @@ actor class EntityTypeStorage(entityType : EntityType.EntityType) {
       };
       case (?entityStorageUnit) { entityStorageUnit };
     };
-    Debug.print("hello EntityTypeStorage entityStorageUnit");
     let result = await entityStorageUnit.putEntity(k, v);
-    Debug.print("hello EntityTypeStorage result");
     return result;
   };
 
@@ -77,4 +74,15 @@ actor class EntityTypeStorage(entityType : EntityType.EntityType) {
     };
     return r;
   };
+
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    stableEntityStorageUnits := Iter.toArray(entityStorageUnits.entries());
+  };
+
+  system func postupgrade() {
+    entityStorageUnits := HashMap.fromIter(Iter.fromArray(stableEntityStorageUnits), stableEntityStorageUnits.size(), Text.equal, Text.hash);
+    stableEntityStorageUnits := [];
+  };
+  // #endregion
 };

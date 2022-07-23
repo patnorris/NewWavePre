@@ -17777,18 +17777,13 @@ __webpack_require__.r(__webpack_exports__);
 document.querySelector("form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const button = e.target.querySelector("button");
-
-  const name = document.getElementById("name").value.toString();
+  console.log('############# Starting Protocol simulation... #############');
 
   button.setAttribute("disabled", true);
 
-  // Interact with foo actor, calling the greet method
-  const greeting = await _declarations_newwave__WEBPACK_IMPORTED_MODULE_0__.newwave.greet(name);
-  console.log('greeting');
-  console.log(greeting);
-
   let entityToCreate = {
-    _internalId: ["_internalId"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    //_internalId: ["_internalId"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    _internalId: [],
     _creator: [],
     _owner: [],
     _settings: [],
@@ -17809,7 +17804,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log('retrievedEntity');
   console.log(retrievedEntity);
   let entityToCreate2 = {
-    _internalId: ["_internalId2"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    //_internalId: ["_internalId2"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    _internalId: [],
     _creator: [],
     _owner: [],
     _settings: [],
@@ -17827,7 +17823,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log('entityId2');
   console.log(entityId2);
   let bridgeToCreate = {
-    _internalId: ["_bridgeInternalId"],
+    //_internalId: ["_bridgeInternalId"],
+    _internalId: [],
     _creator: [], // [] also means optional, i.e. Motoko: ? --> JS: []
     _owner: [],
     _settings: [],
@@ -17851,7 +17848,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log('retrievedBridge');
   console.log(retrievedBridge);
   let bridgeToCreatePending = {
-    _internalId: ["_pendingBridgeId"],
+    //_internalId: ["_pendingBridgeId"],
+    _internalId: [],
     _creator: [], // [] also means optional, i.e. Motoko: ? --> JS: []
     _owner: [],
     _settings: [],
@@ -17867,6 +17865,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
     _state: [{ Pending: null }],
   };
   const bridgePending = await _declarations_newwave__WEBPACK_IMPORTED_MODULE_0__.newwave.create_bridge(bridgeToCreatePending);
+  console.log('bridgePending');
+  console.log(bridgePending);
   const bridgeIdsForEntityNone = await _declarations_newwave__WEBPACK_IMPORTED_MODULE_0__.newwave.get_bridge_ids_by_entity_id(entityId, false, false, false);
   console.log('bridgeIdsForEntityNone');
   console.log(bridgeIdsForEntityNone);
@@ -17892,7 +17892,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log('bridgesForEntityAll');
   console.log(bridgesForEntityAll);
   let entityToCreate3 = {
-    _internalId: ["_internalId3"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    //_internalId: ["_internalId3"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    _internalId: [],
     _creator: [],
     _owner: [],
     _settings: [],
@@ -17904,7 +17905,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
     _entitySpecificFields: [],
   };
   let bridgeToCreate3 = {
-    _internalId: ["_pendingBridgeId3"],
+    //_internalId: ["_pendingBridgeId3"],
+    _internalId: [],
     _creator: [], // [] also means optional, i.e. Motoko: ? --> JS: []
     _owner: [],
     _settings: [],
@@ -17923,7 +17925,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log('createEntityAndBridgeTo');
   console.log(createEntityAndBridgeTo);
   let entityToCreate4 = {
-    _internalId: ["_internalId4"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    //_internalId: ["_internalId4"], // [] also means optional, i.e. Motoko: ? --> JS: []
+    _internalId: [],
     _creator: [],
     _owner: [],
     _settings: [],
@@ -17935,7 +17938,8 @@ document.querySelector("form").addEventListener("submit", async (e) => {
     _entitySpecificFields: [],
   };
   let bridgeToCreate4 = {
-    _internalId: ["_bridgeId4"],
+    //_internalId: ["_bridgeId4"],
+    _internalId: [],
     _creator: [], // [] also means optional, i.e. Motoko: ? --> JS: []
     _owner: [],
     _settings: [],
@@ -17961,8 +17965,6 @@ document.querySelector("form").addEventListener("submit", async (e) => {
   console.log(getEntityAndBridgeIds);
 
   button.removeAttribute("disabled");
-
-  document.getElementById("greeting").innerText = greeting;
 
   return false;
 });

@@ -29,7 +29,9 @@ actor class EntityDirectoryStorageUnit(index : Text) {
   type Key = Text;
   type Value = Principal;
 
-  let map = Map.RBTree<Key, Value>(Text.compare);
+  stable var mapStable : [(Key, Value)] = [];
+  //var map = Map.RBTree<Key, Value>(Text.compare);
+  var map : HashMap.HashMap<Key, Value> = HashMap.HashMap(0, Text.equal, Text.hash);
 
   /* public func get(k : Key) : async ?Value {
     assert(Text.startsWith(k, #text index));
@@ -57,4 +59,14 @@ actor class EntityDirectoryStorageUnit(index : Text) {
     return result;
   };
 
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    mapStable := Iter.toArray(map.entries());
+  };
+
+  system func postupgrade() {
+    map := HashMap.fromIter(Iter.fromArray(mapStable), mapStable.size(), Text.equal, Text.hash);
+    mapStable := [];
+  };
+  // #endregion
 };

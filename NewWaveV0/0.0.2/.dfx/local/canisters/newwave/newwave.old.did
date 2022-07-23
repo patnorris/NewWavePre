@@ -87,5 +87,7 @@ service : {
   get_bridged_entities_by_entity_id: (text, bool, bool, bool) -> (vec Entity);
   get_bridges_by_entity_id: (text, bool, bool, bool) -> (vec BridgeEntity);
   get_entity: (text) -> (opt Entity);
+  get_entity_and_bridge_ids: (text, bool, bool, bool) -> (opt Entity,
+   vec text);
   greet: (text) -> (text);
 }

@@ -20,6 +20,8 @@ import Blob "mo:base/Blob";
 import EntityType "entity_type";
 import EntitySettings "entity_settings";
 
+import Utils "Utils";
+
 module {
   /* public class Entity(
     _internalId : Text,
@@ -94,7 +96,7 @@ module {
   ) : Entity {
     return {
       internalId : Text = switch(initiationObject._internalId) {
-        case null { "" };
+        case null { Utils.newUniqueId() };
         case (?customId) { customId };
       };
       creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));

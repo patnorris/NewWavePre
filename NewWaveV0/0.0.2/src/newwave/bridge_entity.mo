@@ -23,6 +23,8 @@ import Entity "entity";
 import BridgeType "bridge_type";
 import BridgeState "bridge_state";
 
+import Utils "Utils";
+
 module  {
   public type BridgeEntity = Entity.Entity and {
     bridgeType : BridgeType.BridgeType;
@@ -46,7 +48,7 @@ module  {
   ) : BridgeEntity { // or Entity.Entity
     return {
       internalId : Text = switch(initiationObject._internalId) { // TODO: should bridge id be assignable? probably: always assign random id
-        case null { "" };
+        case null { Utils.newUniqueId() };
         case (?customId) { customId };
       };
       creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));

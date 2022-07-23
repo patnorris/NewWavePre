@@ -28,12 +28,12 @@ import BridgeEntity "bridge_entity";
 import BridgesDirectoryStorageUnit "bridges_directory_storage_unit";
 
 actor BridgesFromEntityDirectory {
-  let bridgesDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
+  stable var stableBridgesDirectoryStorageUnits : [(Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit)] = [];
+  var bridgesDirectoryStorageUnits = HashMap.HashMap<Text, BridgesDirectoryStorageUnit.BridgesDirectoryStorageUnit>(0, Text.equal, Text.hash);
   let entityIdSubstringForStorageUnitIndexStart = 0;
   let entityIdSubstringForStorageUnitIndexEnd = 2;
 
   public shared ({ caller }) func putEntityEntry(bridgedEntityId : Text, bridgeId : Text) : async Text {
-    Debug.print("hello BridgesFromEntityDirectory");
     // get correct storageUnitIndex as initial characters from entityId
     let storageUnitIndex : Text = extract(bridgedEntityId, entityIdSubstringForStorageUnitIndexStart, entityIdSubstringForStorageUnitIndexEnd);
     // stores in correct bridge_directory_storage_unit (according to id)
@@ -45,9 +45,7 @@ actor BridgesFromEntityDirectory {
       };
       case (?bridgesDirectoryStorageUnit) { bridgesDirectoryStorageUnit };
     };
-    Debug.print("hello BridgesFromEntityDirectory bridgeDirectoryStorageUnit");
     let result = await bridgesDirectoryStorageUnit.putEntityEntry(bridgedEntityId, bridgeId);
-    Debug.print("hello BridgesFromEntityDirectory result");
     return result;
   };
 
@@ -89,4 +87,14 @@ actor BridgesFromEntityDirectory {
     return r;
   };
 
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    stableBridgesDirectoryStorageUnits := Iter.toArray(bridgesDirectoryStorageUnits.entries());
+  };
+
+  system func postupgrade() {
+    bridgesDirectoryStorageUnits := HashMap.fromIter(Iter.fromArray(stableBridgesDirectoryStorageUnits), stableBridgesDirectoryStorageUnits.size(), Text.equal, Text.hash);
+    stableBridgesDirectoryStorageUnits := [];
+  };
+  // #endregion
 };

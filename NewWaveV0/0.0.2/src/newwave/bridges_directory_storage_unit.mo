@@ -1,27 +1,10 @@
-import Time "mo:base/Time";
-import Int "mo:base/Int";
-import Nat64 "mo:base/Nat64";
-
-import Error "mo:base/Error";
-import Hash "mo:base/Hash";
 import HashMap "mo:base/HashMap";
-import Nat "mo:base/Nat";
-import Option "mo:base/Option";
-import Principal "mo:base/Principal";
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
-import P "mo:base/Prelude";
-import Nat32 "mo:base/Nat32";
-import Result "mo:base/Result";
-import Map "mo:base/RBTree";
+//import Map "mo:base/RBTree";
 import Text "mo:base/Text";
 import List "mo:base/List";
 
-import Random "mo:base/Random";
-import Blob "mo:base/Blob";
-
-import EntityType "entity_type";
-import EntitySettings "entity_settings";
 import Entity "entity";
 import BridgeEntity "bridge_entity";
 
@@ -29,12 +12,14 @@ import BridgeEntity "bridge_entity";
 actor class BridgesDirectoryStorageUnit(index : Text) {
 
   type Key = Text;
-  type Value = { // TODO: define categories
+  type Value = { // TODO: define bridge categories, probably import from a dedicated file
     ownerCreatedBridges : List.List<Text>;
     otherBridges : List.List<Text>;
   };
 
-  let map = Map.RBTree<Key, Value>(Text.compare);
+  stable var mapStable : [(Key, Value)] = [];
+  //var map = Map.RBTree<Key, Value>(Text.compare);
+  var map : HashMap.HashMap<Key, Value> = HashMap.HashMap(0, Text.equal, Text.hash);
 
   /* public func get(k : Key) : async ?Value {
     assert(Text.startsWith(k, #text index));
@@ -82,4 +67,14 @@ actor class BridgesDirectoryStorageUnit(index : Text) {
     return result;
   };
 
+  // #region Upgrade Hooks
+  system func preupgrade() {
+    mapStable := Iter.toArray(map.entries());
+  };
+
+  system func postupgrade() {
+    map := HashMap.fromIter(Iter.fromArray(mapStable), mapStable.size(), Text.equal, Text.hash);
+    mapStable := [];
+  };
+  // #endregion
 };
