@@ -89,5 +89,4 @@ service : {
   get_entity: (text) -> (opt Entity);
   get_entity_and_bridge_ids: (text, bool, bool, bool) -> (opt Entity,
    vec text);
-  greet: (text) -> (text);
 }

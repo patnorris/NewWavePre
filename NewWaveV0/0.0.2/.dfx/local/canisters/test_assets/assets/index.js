@@ -17670,7 +17670,6 @@ const idlFactory = ({ IDL }) => {
         [IDL.Opt(Entity), IDL.Vec(IDL.Text)],
         [],
       ),
-    'greet' : IDL.Func([IDL.Text], [IDL.Text], []),
   });
 };
 const init = ({ IDL }) => { return []; };

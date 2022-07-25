@@ -16,7 +16,7 @@ import XorShift "mo:rand/XorShift";
 module {
   public func newUniqueId() : Text {
     let rr = XorShift.toReader(XorShift.XorShift64(null));
-    let c : [Nat8] = [0, 0, 0, 0, 0, 0]; // Replace with identifier of canister f.e.
+    let c : [Nat8] = [0, 0, 0, 0, 0, 0]; // TODO: Replace with identifier of canister f.e.
     let se = Source.Source(rr, c);
     let id = se.new();
     UUID.toText(id);

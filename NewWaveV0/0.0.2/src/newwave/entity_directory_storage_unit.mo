@@ -30,13 +30,7 @@ actor class EntityDirectoryStorageUnit(index : Text) {
   type Value = Principal;
 
   stable var mapStable : [(Key, Value)] = [];
-  //var map = Map.RBTree<Key, Value>(Text.compare);
   var map : HashMap.HashMap<Key, Value> = HashMap.HashMap(0, Text.equal, Text.hash);
-
-  /* public func get(k : Key) : async ?Value {
-    assert(Text.startsWith(k, #text index));
-    map.get(k);
-  }; */
 
   func get(k : Key) : ?Value {
     assert(Text.startsWith(k, #text index));

@@ -103,5 +103,4 @@ export interface _SERVICE {
       arg_2: boolean,
       arg_3: boolean,
     ) => Promise<[[] | [Entity], Array<string>]>,
-  'greet' : (arg_0: string) => Promise<string>,
 }

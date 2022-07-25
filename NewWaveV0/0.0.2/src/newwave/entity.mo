@@ -22,44 +22,15 @@ import EntitySettings "entity_settings";
 
 import Utils "Utils";
 
-module {
-  /* public class Entity(
-    _internalId : Text,
-    _creator : Principal,
-    _owner : Principal,
-    _settings : ?EntitySettings.EntitySettings,
-    _entityType : EntityType.EntityType,
-    _name : ?Text,
-    _description : ?Text,
-    _keywords : ?[Text],
-    _externalId : ?Text,
-  ) {
-    // Base Entity fields
-    var internalId : Text = _internalId; // or Principal
-    var creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));
-    var creator : Principal = _creator;
-    var owner : Principal = _owner;
-    var settings : EntitySettings.EntitySettings = switch(_settings) {
-      case null { EntitySettings.EntitySettings() };
-      case (?customSettings) { customSettings };
-    };
-    var entityType : EntityType.EntityType = _entityType;
-    var name : ?Text = _name;
-    var description : ?Text = _description;
-    var keywords : ?[Text] = _keywords;
-    var externalId : ?Text = _externalId;
-
-    // Base Entity functions
-
-  }; */
-
-  // example to include functions on type object:
+// example to include functions on type object:
   // type Counter = { inc : () -> Nat };
   /* func Counter() : { inc : () -> Nat } =
   object {
     var c = 0;
     public func inc() : Nat { c += 1; c }
   }; */
+
+module {
 
   public type Entity = {
     internalId : Text;
@@ -121,14 +92,4 @@ module {
       listOfEntitySpecificFieldKeys : [Text] = [];
     }
   };
-  
-  // 
-  /* public func animal_sleep(animal : Animal) : Animal {
-    //animal.energy += 10;
-    //return animal;
-    return {
-      specie = animal.specie;
-      energy = animal.energy + 10;
-    };
-  }; */
 };

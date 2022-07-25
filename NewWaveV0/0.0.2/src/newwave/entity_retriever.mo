@@ -49,7 +49,6 @@ actor EntityRetriever {
 
 
   //let entityTypeRetrievers = HashMap.HashMap<Text, EntityTypeRetriever.EntityTypeRetriever>(0, Text.equal, Text.hash); //potentially implement if type-specific retrieval becomes necessary
-  
   /* public ({ caller }) func get_entity_with_type(entityId : Text, entityType : EntityType.EntityType) : async (Entity.Entity) {
     Debug.print("hello EntityRetriever get_entity_with_type");
     //Debug.print(entityId);

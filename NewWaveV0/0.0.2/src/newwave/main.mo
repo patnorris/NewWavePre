@@ -15,11 +15,8 @@ import EntityAndBridgeCreator "canister:entityandbridgecreator";
 import EntityAndBridgeRetriever "canister:entityandbridgeretriever";
 
 // TODO: mark functions as queries (all files) --> no inter-canister queries currently, check back later
-// TODO: mark variables as stable (all files)
+
 actor {
-  public func greet(name : Text) : async Text {
-    return "Hello, " # name # "!";
-  };
 
   public shared ({ caller }) func create_entity(entityToCreate : Entity.EntityInitiationObject) : async Entity.Entity {
     let result = await EntityCreator.create_entity(entityToCreate);
