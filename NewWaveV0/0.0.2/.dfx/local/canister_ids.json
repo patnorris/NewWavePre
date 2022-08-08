@@ -1,6 +1,6 @@
 {
   "__Candid_UI": {
-    "local": "qvhpv-4qaaa-aaaaa-aaagq-cai"
+    "local": "q3fc5-haaaa-aaaaa-aaahq-cai"
   },
   "bridgecreator": {
     "local": "rrkah-fqaaa-aaaaa-aaaaq-cai"
@@ -24,24 +24,24 @@
     "local": "rdmx6-jaaaa-aaaaa-aaadq-cai"
   },
   "entityandbridgecreator": {
-    "local": "t6rzw-2iaaa-aaaaa-aaama-cai"
-  },
-  "entityandbridgeretriever": {
-    "local": "wmio3-kqaaa-aaaaa-aaasq-cai"
-  },
-  "entitycreator": {
     "local": "qoctq-giaaa-aaaaa-aaaea-cai"
   },
-  "entitydirectory": {
+  "entityandbridgeretriever": {
     "local": "qjdve-lqaaa-aaaaa-aaaeq-cai"
   },
-  "entityretriever": {
+  "entitycreator": {
     "local": "qaa6y-5yaaa-aaaaa-aaafa-cai"
   },
-  "newwave": {
+  "entitydirectory": {
     "local": "qhbym-qaaaa-aaaaa-aaafq-cai"
   },
-  "test_assets": {
+  "entityretriever": {
     "local": "qsgjb-riaaa-aaaaa-aaaga-cai"
+  },
+  "newwave": {
+    "local": "qvhpv-4qaaa-aaaaa-aaagq-cai"
+  },
+  "test_assets": {
+    "local": "q4eej-kyaaa-aaaaa-aaaha-cai"
   }
 }

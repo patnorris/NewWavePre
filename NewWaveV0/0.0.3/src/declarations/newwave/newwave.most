@@ -1,0 +1,44 @@
+type BridgeCategories =
+  {otherBridges : List<Text>; ownerCreatedBridges : List<Text>};
+type BridgeEntity =
+  {
+    bridgeType : BridgeType;
+    creationTimestamp : Nat64;
+    creator : Principal;
+    description : ?Text;
+    entitySpecificFields : ?Text;
+    entityType : EntityType;
+    externalId : ?Text;
+    fromEntityId : Text;
+    internalId : Text;
+    keywords : ?[Text];
+    listOfEntitySpecificFieldKeys : [Text];
+    name : ?Text;
+    owner : Principal;
+    settings : EntitySettings;
+    state : BridgeState;
+    toEntityId : Text
+  };
+type Entity =
+  {
+    creationTimestamp : Nat64;
+    creator : Principal;
+    description : ?Text;
+    entitySpecificFields : ?Text;
+    entityType : EntityType;
+    externalId : ?Text;
+    internalId : Text;
+    keywords : ?[Text];
+    listOfEntitySpecificFieldKeys : [Text];
+    name : ?Text;
+    owner : Principal;
+    settings : EntitySettings
+  };
+actor {
+  stable var bridgesStorageStable : [(Text, BridgeEntity)];
+  stable var entitiesStorageStable : [(Text, Entity)];
+  stable var fromBridgesStorageStable : [(Text, BridgeCategories)];
+  stable var pendingFromBridgesStorageStable : [(Text, BridgeCategories)];
+  stable var pendingToBridgesStorageStable : [(Text, BridgeCategories)];
+  stable var toBridgesStorageStable : [(Text, BridgeCategories)]
+};
