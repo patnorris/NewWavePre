@@ -104,7 +104,7 @@ actor {
     return bridge;
   };
 
-  type BridgeCategories = { // TODO: define bridge categories, probably import from a dedicated file
+  type BridgeCategories = { // TODO: define bridge categories, probably import from a dedicated file (BridgeType)
     ownerCreatedBridges : List.List<Text>;
     otherBridges : List.List<Text>;
   };
@@ -329,7 +329,6 @@ actor {
       };
       i += 1;
     };
-    // Array.freeze<Text>(bridgedEntityIds)
     let executingFunctionsBuffer = Buffer.Buffer<async ?Entity.Entity>(bridgedEntityIds.size());
     for (entityId in bridgedEntityIds.vals()) { 
       executingFunctionsBuffer.add(getEntity(entityId)); 
