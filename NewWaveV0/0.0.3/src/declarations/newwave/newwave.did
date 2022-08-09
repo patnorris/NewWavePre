@@ -86,17 +86,13 @@ service : {
   create_entity: (EntityInitiationObject) -> (Entity);
   create_entity_and_bridge: (EntityInitiationObject,
    BridgeEntityInitiationObject) -> (Entity, BridgeEntity);
-  getBridge: (text) -> (opt BridgeEntity);
-  getBridgeIdsByEntityId: (text, bool, bool, bool) -> (vec text);
-  getBridgedEntitiesByEntityId: (text, bool, bool, bool) -> (vec Entity);
-  getBridgesByEntityId: (text, bool, bool, bool) -> (vec BridgeEntity);
-  getEntity: (text) -> (opt Entity);
-  getEntityAndBridgeIds: (text, bool, bool, bool) -> (opt Entity, vec text);
-  get_bridge: (text) -> (opt BridgeEntity);
-  get_bridge_ids_by_entity_id: (text, bool, bool, bool) -> (vec text);
-  get_bridged_entities_by_entity_id: (text, bool, bool, bool) -> (vec Entity);
-  get_bridges_by_entity_id: (text, bool, bool, bool) -> (vec BridgeEntity);
-  get_entity: (text) -> (opt Entity);
+  get_bridge: (text) -> (opt BridgeEntity) query;
+  get_bridge_ids_by_entity_id: (text, bool, bool, bool) -> (vec text) query;
+  get_bridged_entities_by_entity_id: (text, bool, bool, bool) ->
+   (vec Entity) query;
+  get_bridges_by_entity_id: (text, bool, bool, bool) ->
+   (vec BridgeEntity) query;
+  get_entity: (text) -> (opt Entity) query;
   get_entity_and_bridge_ids: (text, bool, bool, bool) -> (opt Entity,
-   vec text);
+   vec text) query;
 }

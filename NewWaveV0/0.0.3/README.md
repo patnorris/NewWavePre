@@ -73,5 +73,4 @@ TODO: define bridge categories
 TODO: determine which category's list/categories' lists in entry to return [multiple]
 TODO: potentially update entityToCreate fields (might vary depending on EntityType)
 TODO: potentially assign final internal_id to Entity (might vary depending on EntityType)
-TODO: mark functions as queries (all files) --> no inter-canister queries currently, check back later
 TODO: possible to return promise? Would this speed up this canister? e.g. try ... : async (async Entity.Entity) [multiple, all files]

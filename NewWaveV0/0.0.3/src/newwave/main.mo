@@ -13,8 +13,6 @@ import Iter "mo:base/Iter";
 import Entity "entity";
 import BridgeEntity "bridge_entity";
 
-// TODO: mark functions as queries (all files) --> no inter-canister queries currently, check back later
-
 actor {
 // INTERFACE
   public shared ({ caller }) func create_entity(entityToCreate : Entity.EntityInitiationObject) : async Entity.Entity {
@@ -23,8 +21,8 @@ actor {
     // return EntityCreator.create_entity(); throws error (doesn't match expected type) -> TODO: possible to return promise? Would this speed up this canister? e.g. try ... : async (async Entity.Entity)
   };
 
-  public shared ({ caller }) func get_entity(entityId : Text) : async ?Entity.Entity {
-    let result = await getEntity(entityId);
+  public shared query ({ caller }) func get_entity(entityId : Text) : async ?Entity.Entity {
+    let result = getEntity(entityId);
     return result;
   };
 
@@ -34,18 +32,18 @@ actor {
     // return BridgeCreator.create_bridge(bridgeToCreate); TODO: possible to return promise? Would this speed up this canister?
   };
 
-  public shared ({ caller }) func get_bridge(entityId : Text) : async ?BridgeEntity.BridgeEntity {
-    let result = await getBridge(entityId);
+  public shared query ({ caller }) func get_bridge(entityId : Text) : async ?BridgeEntity.BridgeEntity {
+    let result = getBridge(entityId);
     return result;
   };
 
-  public shared ({ caller }) func get_bridge_ids_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Text] {
-    let result = await getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  public shared query ({ caller }) func get_bridge_ids_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Text] {
+    let result = getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     return result;
   };
 
-  public shared ({ caller }) func get_bridges_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [BridgeEntity.BridgeEntity] {
-    let result = await getBridgesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  public shared query ({ caller }) func get_bridges_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [BridgeEntity.BridgeEntity] {
+    let result = getBridgesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     return result;
   };
 
@@ -54,13 +52,13 @@ actor {
     return result;
   };
 
-  public shared ({ caller }) func get_bridged_entities_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Entity.Entity] {
-    let result = await getBridgedEntitiesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  public shared query ({ caller }) func get_bridged_entities_by_entity_id(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Entity.Entity] {
+    let result = getBridgedEntitiesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     return result;
   };
 
-  public shared ({ caller }) func get_entity_and_bridge_ids(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async (?Entity.Entity, [Text]) {
-    let result = await getEntityAndBridgeIds(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  public shared query ({ caller }) func get_entity_and_bridge_ids(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async (?Entity.Entity, [Text]) {
+    let result = getEntityAndBridgeIds(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     return result;
   };
 
@@ -83,7 +81,7 @@ actor {
     return entityId;
   };
 
-  public func getEntity(entityId : Text) : async ?Entity.Entity {
+  func getEntity(entityId : Text) : ?Entity.Entity {
     let result = entitiesStorage.get(entityId);
     return result;
   };
@@ -210,12 +208,12 @@ actor {
     return bridge.internalId;
   };
 
-  public shared ({ caller }) func getBridge(entityId : Text) : async ?BridgeEntity.BridgeEntity {
+  func getBridge(entityId : Text) : ?BridgeEntity.BridgeEntity {
     let bridgeToReturn : ?BridgeEntity.BridgeEntity = bridgesStorage.get(entityId);
     return bridgeToReturn;
   };
 
-  public shared ({ caller }) func getBridgeIdsByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Text] {
+  func getBridgeIdsByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : [Text] {
     var bridgeIdsToReturn = List.nil<Text>();
     if (includeBridgesFromEntity) {
       switch(fromBridgesStorage.get(entityId)) {
@@ -250,17 +248,17 @@ actor {
     return List.toArray<Text>(bridgeIdsToReturn);
   };
 
-  public shared ({ caller }) func getBridgesByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [BridgeEntity.BridgeEntity] {
-    let bridgeIdsToRetrieve = await getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  func getBridgesByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : [BridgeEntity.BridgeEntity] {
+    let bridgeIdsToRetrieve = getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     // adapted from https://forum.dfinity.org/t/motoko-sharable-generics/9021/3
-    let executingFunctionsBuffer = Buffer.Buffer<async ?BridgeEntity.BridgeEntity>(bridgeIdsToRetrieve.size());
+    let executingFunctionsBuffer = Buffer.Buffer<?BridgeEntity.BridgeEntity>(bridgeIdsToRetrieve.size());
     for (bridgeId in bridgeIdsToRetrieve.vals()) { 
       executingFunctionsBuffer.add(getBridge(bridgeId)); 
     };
     let collectingResultsBuffer = Buffer.Buffer<BridgeEntity.BridgeEntity>(bridgeIdsToRetrieve.size());
     var i = 0;
     for (bridgeId in bridgeIdsToRetrieve.vals()) {
-      switch(await executingFunctionsBuffer.get(i)) {
+      switch(executingFunctionsBuffer.get(i)) {
         case null {};
         case (?bridge) { collectingResultsBuffer.add(bridge); };
       };      
@@ -314,8 +312,8 @@ actor {
     return (createdEntity, bridgeEntity);
   };
 
-  public shared ({ caller }) func getBridgedEntitiesByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async [Entity.Entity] {
-    let entityBridges : [BridgeEntity.BridgeEntity] = await getBridgesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+  func getBridgedEntitiesByEntityId(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : [Entity.Entity] {
+    let entityBridges : [BridgeEntity.BridgeEntity] = getBridgesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
     if (entityBridges.size() == 0) {
       return [];
     };
@@ -329,14 +327,14 @@ actor {
       };
       i += 1;
     };
-    let executingFunctionsBuffer = Buffer.Buffer<async ?Entity.Entity>(bridgedEntityIds.size());
+    let executingFunctionsBuffer = Buffer.Buffer<?Entity.Entity>(bridgedEntityIds.size());
     for (entityId in bridgedEntityIds.vals()) { 
       executingFunctionsBuffer.add(getEntity(entityId)); 
     };
     let collectingResultsBuffer = Buffer.Buffer<Entity.Entity>(bridgedEntityIds.size());
     i := 0;
     for (entityId in bridgedEntityIds.vals()) {
-      switch(await executingFunctionsBuffer.get(i)) {
+      switch(executingFunctionsBuffer.get(i)) {
         case null {};
         case (?entity) { collectingResultsBuffer.add(entity); };
       };      
@@ -346,19 +344,93 @@ actor {
     return bridgedEntities;
   };
 
-  public shared ({ caller }) func getEntityAndBridgeIds(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : async (?Entity.Entity, [Text]) {
-    switch(await getEntity(entityId)) {
+  func getEntityAndBridgeIds(entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) : (?Entity.Entity, [Text]) {
+    switch(getEntity(entityId)) {
       case null {
         return (null, []);
       };
       case (?entity) { 
-        let bridgeIds : [Text] = await getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+        let bridgeIds : [Text] = getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
         return (?entity, bridgeIds);
       };
     };
   };
 
-  // #region Upgrade Hooks
+// HTTP interface
+  /* public query func http_request(request : HTTP.Request) : async HTTP.Response {
+    //Debug.print(debug_show("http_request test"));
+    //Debug.print(debug_show(request));
+    if (request.url == "/getEntity") {
+      // TODO
+      let item = List.get(nfts, Nat32.toNat(index));
+      switch (item) {
+        case (null) {
+          let response = {
+            body = Text.encodeUtf8("Invalid tokenid");
+            headers = [];
+            status_code = 404 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+        case (?token) {
+          let body = token.metadata[0].data;
+          let response = {
+            body = body;
+            headers = [("Content-Type", "image/png"), ("Content-Length", Nat.toText(body.size()))];
+            status_code = 200 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+    } else if (request.url == "/getBridge") {
+    } else if (request.url == "/getBridgeIdsByEntityId") {
+    } else if (request.url == "/getBridgesByEntityId") {
+    } else if (request.url == "/getBridgedEntitiesByEntityId") {
+    } else if (request.url == "/getEntityAndBridgeIds") {
+    } else {
+      return {
+        upgrade = true; // ← If this is set, the request will be sent to http_request_update()
+        status_code = 200;
+        headers = [ ("content-type", "text/plain") ];
+        body = "It does not work";
+        streaming_strategy = null;
+      };
+    }
+  };
+
+  public shared func http_request_update(request : HTTP.Request) : async HTTP.Response {
+    //Debug.print(debug_show("http_request_update"));
+    //Debug.print(debug_show(request));
+    if (request.url == "/createEntity") { // http request for getOpenGenerationJobs
+      // TODO
+      let body = Text.encodeUtf8(debug_show(generationJobs));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
+    } else if (request.url == "/createBridge") {
+    } else if (request.url == "/createEntityAndBridge") {
+    } else {
+      let response = {
+        body = Text.encodeUtf8("Not supported");
+        headers = [];
+        status_code = 404 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
+    }
+  }; */
+
+// Upgrade Hooks
   system func preupgrade() {
     entitiesStorageStable := Iter.toArray(entitiesStorage.entries());
     bridgesStorageStable := Iter.toArray(bridgesStorage.entries());
@@ -382,5 +454,4 @@ actor {
     toBridgesStorage := HashMap.fromIter(Iter.fromArray(toBridgesStorageStable), toBridgesStorageStable.size(), Text.equal, Text.hash);
     toBridgesStorageStable := [];
   };
-  // #endregion
 };

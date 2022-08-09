@@ -95,49 +95,27 @@ export const idlFactory = ({ IDL }) => {
         [Entity, BridgeEntity],
         [],
       ),
-    'getBridge' : IDL.Func([IDL.Text], [IDL.Opt(BridgeEntity)], []),
-    'getBridgeIdsByEntityId' : IDL.Func(
-        [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
-        [IDL.Vec(IDL.Text)],
-        [],
-      ),
-    'getBridgedEntitiesByEntityId' : IDL.Func(
-        [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
-        [IDL.Vec(Entity)],
-        [],
-      ),
-    'getBridgesByEntityId' : IDL.Func(
-        [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
-        [IDL.Vec(BridgeEntity)],
-        [],
-      ),
-    'getEntity' : IDL.Func([IDL.Text], [IDL.Opt(Entity)], []),
-    'getEntityAndBridgeIds' : IDL.Func(
-        [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
-        [IDL.Opt(Entity), IDL.Vec(IDL.Text)],
-        [],
-      ),
-    'get_bridge' : IDL.Func([IDL.Text], [IDL.Opt(BridgeEntity)], []),
+    'get_bridge' : IDL.Func([IDL.Text], [IDL.Opt(BridgeEntity)], ['query']),
     'get_bridge_ids_by_entity_id' : IDL.Func(
         [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
         [IDL.Vec(IDL.Text)],
-        [],
+        ['query'],
       ),
     'get_bridged_entities_by_entity_id' : IDL.Func(
         [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
         [IDL.Vec(Entity)],
-        [],
+        ['query'],
       ),
     'get_bridges_by_entity_id' : IDL.Func(
         [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
         [IDL.Vec(BridgeEntity)],
-        [],
+        ['query'],
       ),
-    'get_entity' : IDL.Func([IDL.Text], [IDL.Opt(Entity)], []),
+    'get_entity' : IDL.Func([IDL.Text], [IDL.Opt(Entity)], ['query']),
     'get_entity_and_bridge_ids' : IDL.Func(
         [IDL.Text, IDL.Bool, IDL.Bool, IDL.Bool],
         [IDL.Opt(Entity), IDL.Vec(IDL.Text)],
-        [],
+        ['query'],
       ),
   });
 };

@@ -85,32 +85,6 @@ export interface _SERVICE {
       arg_0: EntityInitiationObject,
       arg_1: BridgeEntityInitiationObject,
     ) => Promise<[Entity, BridgeEntity]>,
-  'getBridge' : (arg_0: string) => Promise<[] | [BridgeEntity]>,
-  'getBridgeIdsByEntityId' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<string>>,
-  'getBridgedEntitiesByEntityId' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<Entity>>,
-  'getBridgesByEntityId' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<BridgeEntity>>,
-  'getEntity' : (arg_0: string) => Promise<[] | [Entity]>,
-  'getEntityAndBridgeIds' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<[[] | [Entity], Array<string>]>,
   'get_bridge' : (arg_0: string) => Promise<[] | [BridgeEntity]>,
   'get_bridge_ids_by_entity_id' : (
       arg_0: string,
