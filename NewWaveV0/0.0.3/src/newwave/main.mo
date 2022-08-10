@@ -1,5 +1,5 @@
-//import Debug "mo:base/Debug";
-//import Principal "mo:base/Principal";
+import Debug "mo:base/Debug";
+import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import HashMap "mo:base/HashMap";
 import List "mo:base/List";
@@ -7,11 +7,14 @@ import Bool "mo:base/Bool";
 import Buffer "mo:base/Buffer";
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
+import Nat "mo:base/Nat";
 
-//import EntityType "entity_type";
+import EntityType "entity_type";
 //import EntitySettings "entity_settings";
 import Entity "entity";
 import BridgeEntity "bridge_entity";
+
+import HTTP "./Http";
 
 actor {
 // INTERFACE
@@ -357,16 +360,35 @@ actor {
   };
 
 // HTTP interface
-  /* public query func http_request(request : HTTP.Request) : async HTTP.Response {
+  public query func http_request(request : HTTP.Request) : async HTTP.Response {
+  // TODO: probably format response bodies to JSON
     //Debug.print(debug_show("http_request test"));
     //Debug.print(debug_show(request));
     if (request.url == "/getEntity") {
-      // TODO
-      let item = List.get(nfts, Nat32.toNat(index));
-      switch (item) {
+      let entityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityId : Text = switch(entityIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      switch (getEntity(entityId)) {
         case (null) {
           let response = {
-            body = Text.encodeUtf8("Invalid tokenid");
+            body = Text.encodeUtf8("Invalid EntityId");
             headers = [];
             status_code = 404 : Nat16;
             streaming_strategy = null;
@@ -374,11 +396,11 @@ actor {
           };
           return(response);
         };
-        case (?token) {
-          let body = token.metadata[0].data;
+        case (?entity) {
+          let body = Text.encodeUtf8(debug_show(entity));
           let response = {
             body = body;
-            headers = [("Content-Type", "image/png"), ("Content-Length", Nat.toText(body.size()))];
+            headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
             status_code = 200 : Nat16;
             streaming_strategy = null;
             upgrade = false;
@@ -387,10 +409,257 @@ actor {
         };
       };
     } else if (request.url == "/getBridge") {
+      let bridgeIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "bridgeid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let bridgeId : Text = switch(bridgeIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No BridgeId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      switch (getBridge(bridgeId)) {
+        case (null) {
+          let response = {
+            body = Text.encodeUtf8("Invalid BridgeId");
+            headers = [];
+            status_code = 404 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+        case (?bridge) {
+          let body = Text.encodeUtf8(debug_show(bridge));
+          let response = {
+            body = body;
+            headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+            status_code = 200 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
     } else if (request.url == "/getBridgeIdsByEntityId") {
+      let entityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityId : Text = switch(entityIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // fill variables from corresponding headers
+      var includeBridgesFromEntity : Bool = false;
+      var includeBridgesToEntity : Bool = false;
+      var includeBridgesPendingForEntity : Bool = false;
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "includebridgesfromentity") {
+          if (header.1 == "true") {
+            includeBridgesFromEntity := true;
+          }
+        } else if (header.0 == "includebridgestoentity") {
+          if (header.1 == "true") {
+            includeBridgesToEntity := true;
+          }
+        } else if (header.0 == "includebridgespendingforentity") {
+          if (header.1 == "true") {
+            includeBridgesPendingForEntity := true;
+          }
+        }
+      };
+      let bridgeIds : [Text] = getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+      let body = Text.encodeUtf8(debug_show(bridgeIds));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
     } else if (request.url == "/getBridgesByEntityId") {
+      let entityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityId : Text = switch(entityIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // fill variables from corresponding headers
+      var includeBridgesFromEntity : Bool = false;
+      var includeBridgesToEntity : Bool = false;
+      var includeBridgesPendingForEntity : Bool = false;
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "includebridgesfromentity") {
+          if (header.1 == "true") {
+            includeBridgesFromEntity := true;
+          }
+        } else if (header.0 == "includebridgestoentity") {
+          if (header.1 == "true") {
+            includeBridgesToEntity := true;
+          }
+        } else if (header.0 == "includebridgespendingforentity") {
+          if (header.1 == "true") {
+            includeBridgesPendingForEntity := true;
+          }
+        }
+      };
+      let bridges : [BridgeEntity.BridgeEntity] = getBridgesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+      let body = Text.encodeUtf8(debug_show(bridges));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
     } else if (request.url == "/getBridgedEntitiesByEntityId") {
+      let entityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityId : Text = switch(entityIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // fill variables from corresponding headers
+      var includeBridgesFromEntity : Bool = false;
+      var includeBridgesToEntity : Bool = false;
+      var includeBridgesPendingForEntity : Bool = false;
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "includebridgesfromentity") {
+          if (header.1 == "true") {
+            includeBridgesFromEntity := true;
+          }
+        } else if (header.0 == "includebridgestoentity") {
+          if (header.1 == "true") {
+            includeBridgesToEntity := true;
+          }
+        } else if (header.0 == "includebridgespendingforentity") {
+          if (header.1 == "true") {
+            includeBridgesPendingForEntity := true;
+          }
+        }
+      };
+      let bridgedEntities : [Entity.Entity] = getBridgedEntitiesByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+      let body = Text.encodeUtf8(debug_show(bridgedEntities));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
     } else if (request.url == "/getEntityAndBridgeIds") {
+      let entityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityId : Text = switch(entityIdInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // fill variables from corresponding headers
+      var includeBridgesFromEntity : Bool = false;
+      var includeBridgesToEntity : Bool = false;
+      var includeBridgesPendingForEntity : Bool = false;
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "includebridgesfromentity") {
+          if (header.1 == "true") {
+            includeBridgesFromEntity := true;
+          }
+        } else if (header.0 == "includebridgestoentity") {
+          if (header.1 == "true") {
+            includeBridgesToEntity := true;
+          }
+        } else if (header.0 == "includebridgespendingforentity") {
+          if (header.1 == "true") {
+            includeBridgesPendingForEntity := true;
+          }
+        }
+      };
+      let entityAndBridgeIds : (?Entity.Entity, [Text]) = getEntityAndBridgeIds(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
+      let body = Text.encodeUtf8(debug_show(entityAndBridgeIds));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
     } else {
       return {
         upgrade = true; // ← If this is set, the request will be sent to http_request_update()
@@ -403,11 +672,85 @@ actor {
   };
 
   public shared func http_request_update(request : HTTP.Request) : async HTTP.Response {
-    //Debug.print(debug_show("http_request_update"));
-    //Debug.print(debug_show(request));
-    if (request.url == "/createEntity") { // http request for getOpenGenerationJobs
-      // TODO
-      let body = Text.encodeUtf8(debug_show(generationJobs));
+    Debug.print(debug_show("http_request_update"));
+    Debug.print(debug_show(request));
+    if (request.url == "/createEntity") {
+      var inputCreator : ?Principal = null;
+      var inputOwner : ?Principal = null;
+      var inputEntityType : EntityType.EntityType = #Webasset; // must be updated
+      var inputName : ?Text = null;
+      var inputDescription : ?Text = null;
+      var inputKeywords : ?[Text] = null;
+      var inputExternalId : ?Text = null;
+
+      let entityTypeInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entitytype") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityType : Text = switch(entityTypeInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityType header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // TODO: text input to EntityType enum must be done better and more scalable
+      if (entityType == "webasset") {
+        inputEntityType := #Webasset;
+      } else if (entityType == "person") {
+        inputEntityType := #Person;
+      } else if (entityType == "location") {
+        inputEntityType := #Location;
+      } else {
+        let response = {
+            body = Text.encodeUtf8("EntityType not supported");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+      };
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "creator") {
+          inputCreator := ?Principal.fromText(header.1);
+        } else if (header.0 == "owner") {
+          inputOwner := ?Principal.fromText(header.1);
+        } else if (header.0 == "name") {
+          inputName := ?header.1;
+        } else if (header.0 == "description") {
+          inputDescription := ?header.1;
+        } else if (header.0 == "keywords") {
+          inputKeywords := ?[header.1]; // TODO: each keyword in input string should be one entry in array
+        } else if (header.0 == "externalid") {
+          inputExternalId := ?header.1;
+        }
+      };
+      let entityInitiationObject : Entity.EntityInitiationObject = {
+        _internalId = null; // random id will be assigned
+        _creator = inputCreator;
+        _owner = inputOwner;
+        _settings = null; // TODO: allow specification
+        _entityType = inputEntityType;
+        _name = inputName;
+        _description = inputDescription;
+        _keywords = inputKeywords;
+        _externalId = inputExternalId;
+        _entitySpecificFields = null; // TODO: fill correctly
+      };
+      let entity : Entity.Entity = await create_entity(entityInitiationObject);
+      let body = Text.encodeUtf8(debug_show(entity));
       let response = {
         body = body;
         headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
@@ -417,7 +760,316 @@ actor {
       };
       return(response);
     } else if (request.url == "/createBridge") {
+      var inputCreator : ?Principal = null;
+      var inputOwner : ?Principal = null;
+      var inputName : ?Text = null;
+      var inputDescription : ?Text = null;
+      var inputKeywords : ?[Text] = null;
+      var inputExternalId : ?Text = null;
+      var inputFromEntityId : Text = "";
+      var inputToEntityId : Text = "";
+
+      let fromEntityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "fromentityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      inputFromEntityId := switch(fromEntityIdInput) {
+        case (?v) {
+          switch(getEntity(v.1)) {
+            case null {
+              let response = {
+                body = Text.encodeUtf8("Invalid FromEntityId header provided");
+                headers = [];
+                status_code = 400 : Nat16;
+                streaming_strategy = null;
+                upgrade = false;
+              };
+              return(response);
+            };
+            case (?entity) { v.1 };
+          };
+        };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No FromEntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      let toEntityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "toentityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      inputToEntityId := switch(toEntityIdInput) {
+        case (?v) {
+          switch(getEntity(v.1)) {
+            case null {
+              let response = {
+                body = Text.encodeUtf8("Invalid ToEntityId header provided");
+                headers = [];
+                status_code = 400 : Nat16;
+                streaming_strategy = null;
+                upgrade = false;
+              };
+              return(response);
+            };
+            case (?entity) { v.1 };
+          };
+        };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No ToEntityId header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "creator") {
+          inputCreator := ?Principal.fromText(header.1);
+        } else if (header.0 == "owner") {
+          inputOwner := ?Principal.fromText(header.1);
+        } else if (header.0 == "name") {
+          inputName := ?header.1;
+        } else if (header.0 == "description") {
+          inputDescription := ?header.1;
+        } else if (header.0 == "keywords") {
+          inputKeywords := ?[header.1]; // TODO: each keyword in input string should be one entry in array
+        } else if (header.0 == "externalid") {
+          inputExternalId := ?header.1;
+        }
+      };
+      let entityInitiationObject : BridgeEntity.BridgeEntityInitiationObject = {
+        _internalId = null; // random id will be assigned
+        _creator = inputCreator;
+        _owner = inputOwner;
+        _settings = null; // TODO: allow specification
+        _entityType = #BridgeEntity;
+        _name = inputName;
+        _description = inputDescription;
+        _keywords = inputKeywords;
+        _externalId = inputExternalId;
+        _entitySpecificFields = null; // TODO: fill correctly
+        _bridgeType = #OwnerCreated; // TODO: fill appropriately
+        _fromEntityId = inputFromEntityId;
+        _toEntityId = inputToEntityId;
+        _state = ?#Pending; // TODO: fill appropriately
+      };
+      let entity : BridgeEntity.BridgeEntity = await create_bridge(entityInitiationObject);
+      let body = Text.encodeUtf8(debug_show(entity));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);
     } else if (request.url == "/createEntityAndBridge") {
+      var inputCreator : ?Principal = null;
+      var inputOwner : ?Principal = null;
+      var inputEntityType : EntityType.EntityType = #Webasset; // must be updated
+      var inputName : ?Text = null;
+      var inputDescription : ?Text = null;
+      var inputKeywords : ?[Text] = null;
+      var inputExternalId : ?Text = null;
+
+      let entityTypeInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "entitytype") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let entityType : Text = switch(entityTypeInput) {
+        case (?v) { v.1 };
+        case null {
+          let response = {
+            body = Text.encodeUtf8("No EntityType header provided");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+        };
+      };
+      // TODO: text input to EntityType enum must be done better and more scalable
+      if (entityType == "webasset") {
+        inputEntityType := #Webasset;
+      } else if (entityType == "person") {
+        inputEntityType := #Person;
+      } else if (entityType == "location") {
+        inputEntityType := #Location;
+      } else {
+        let response = {
+            body = Text.encodeUtf8("EntityType not supported");
+            headers = [];
+            status_code = 400 : Nat16;
+            streaming_strategy = null;
+            upgrade = false;
+          };
+          return(response);
+      };
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "creator") {
+          inputCreator := ?Principal.fromText(header.1);
+        } else if (header.0 == "owner") {
+          inputOwner := ?Principal.fromText(header.1);
+        } else if (header.0 == "name") {
+          inputName := ?header.1;
+        } else if (header.0 == "description") {
+          inputDescription := ?header.1;
+        } else if (header.0 == "keywords") {
+          inputKeywords := ?[header.1]; // TODO: each keyword in input string should be one entry in array
+        } else if (header.0 == "externalid") {
+          inputExternalId := ?header.1;
+        }
+      };
+      let entityInitiationObject : Entity.EntityInitiationObject = {
+        _internalId = null; // random id will be assigned
+        _creator = inputCreator;
+        _owner = inputOwner;
+        _settings = null; // TODO: allow specification
+        _entityType = inputEntityType;
+        _name = inputName;
+        _description = inputDescription;
+        _keywords = inputKeywords;
+        _externalId = inputExternalId;
+        _entitySpecificFields = null; // TODO: fill correctly
+      };
+
+      // Bridge initiation object
+      var inputBridgeName : ?Text = null;
+      var inputBridgeDescription : ?Text = null;
+      var inputBridgeKeywords : ?[Text] = null;
+      var inputBridgeExternalId : ?Text = null;
+      var inputFromEntityId : Text = "";
+      var inputToEntityId : Text = "";
+
+      let fromEntityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "fromentityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      let toEntityIdInput : ?HTTP.HeaderField = Array.find<HTTP.HeaderField>(request.headers, func (header) {
+        if (header.0 == "toentityid") {
+          return true;
+        } else {
+          return false;
+        };
+      });
+      inputFromEntityId := switch(fromEntityIdInput) {
+        case (?v) {
+          switch(getEntity(v.1)) {
+            case null {
+              let response = {
+                body = Text.encodeUtf8("Invalid FromEntityId header provided");
+                headers = [];
+                status_code = 400 : Nat16;
+                streaming_strategy = null;
+                upgrade = false;
+              };
+              return(response);
+            };
+            case (?entity) { v.1 };
+          };
+        };
+        case null {
+          inputToEntityId := switch(toEntityIdInput) {
+            case (?vTo) {
+              switch(getEntity(vTo.1)) {
+                case null {
+                  let response = {
+                    body = Text.encodeUtf8("Invalid ToEntityId header provided");
+                    headers = [];
+                    status_code = 400 : Nat16;
+                    streaming_strategy = null;
+                    upgrade = false;
+                  };
+                  return(response);
+                };
+                case (?entityTo) { vTo.1 };
+              };
+            };
+            case null {
+              let response = {
+                body = Text.encodeUtf8("Neither FromEntityId nor ToEntityId header provided");
+                headers = [];
+                status_code = 400 : Nat16;
+                streaming_strategy = null;
+                upgrade = false;
+              };
+              return(response);
+            };
+          };
+          "" // needed to be returned to inputFromEntityId (outer switch)
+        };
+      };
+
+      for (header in request.headers.vals()) {
+        //Debug.print(debug_show("header"));
+        //Debug.print(debug_show(header));
+        if (header.0 == "creator") {
+          inputCreator := ?Principal.fromText(header.1);
+        } else if (header.0 == "owner") {
+          inputOwner := ?Principal.fromText(header.1);
+        } else if (header.0 == "name") {
+          inputName := ?header.1;
+        } else if (header.0 == "description") {
+          inputDescription := ?header.1;
+        } else if (header.0 == "keywords") {
+          inputKeywords := ?[header.1]; // TODO: each keyword in input string should be one entry in array
+        } else if (header.0 == "externalid") {
+          inputExternalId := ?header.1;
+        }
+      };
+      let bridgeInitiationObject : BridgeEntity.BridgeEntityInitiationObject = {
+        _internalId = null; // random id will be assigned
+        _creator = inputCreator; // potentially allow for different, bridge-specific input
+        _owner = inputOwner; // potentially allow for different, bridge-specific input
+        _settings = null; // TODO: allow specification
+        _entityType = #BridgeEntity;
+        _name = inputBridgeName;
+        _description = inputBridgeDescription;
+        _keywords = inputBridgeKeywords;
+        _externalId = inputBridgeExternalId;
+        _entitySpecificFields = null; // TODO: fill correctly
+        _bridgeType = #OwnerCreated; // TODO: fill appropriately
+        _fromEntityId = inputFromEntityId;
+        _toEntityId = inputToEntityId;
+        _state = ?#Pending; // TODO: fill appropriately
+      };
+
+      let entityAndBridge : (Entity.Entity, BridgeEntity.BridgeEntity) = await create_entity_and_bridge(entityInitiationObject, bridgeInitiationObject);
+      let body = Text.encodeUtf8(debug_show(entityAndBridge));
+      let response = {
+        body = body;
+        headers = [("Content-Type", "text/html; charset=UTF-8"), ("Content-Length", Nat.toText(body.size()))];
+        status_code = 200 : Nat16;
+        streaming_strategy = null;
+        upgrade = false;
+      };
+      return(response);      
     } else {
       let response = {
         body = Text.encodeUtf8("Not supported");
@@ -428,7 +1080,7 @@ actor {
       };
       return(response);
     }
-  }; */
+  };
 
 // Upgrade Hooks
   system func preupgrade() {

@@ -1,3 +1,4 @@
+// Version: 1.0.0
 type BridgeCategories =
   {otherBridges : List<Text>; ownerCreatedBridges : List<Text>};
 type BridgeEntity =
@@ -19,6 +20,8 @@ type BridgeEntity =
     state : BridgeState;
     toEntityId : Text
   };
+type BridgeState = {#Confirmed; #Pending; #Rejected};
+type BridgeType = {#OwnerCreated};
 type Entity =
   {
     creationTimestamp : Nat64;
@@ -34,6 +37,9 @@ type Entity =
     owner : Principal;
     settings : EntitySettings
   };
+type EntitySettings = {};
+type EntityType = {#BridgeEntity; #Location; #Person; #Webasset};
+type List<T> = ?(T, List<T>);
 actor {
   stable var bridgesStorageStable : [(Text, BridgeEntity)];
   stable var entitiesStorageStable : [(Text, Entity)];

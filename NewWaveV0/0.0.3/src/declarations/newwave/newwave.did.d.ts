@@ -1,4 +1,6 @@
 import type { Principal } from '@dfinity/principal';
+import type { ActorMethod } from '@dfinity/agent';
+
 export interface BridgeEntity {
   'internalId' : string,
   'toEntityId' : string,
@@ -68,47 +70,70 @@ export type EntityType = { 'Webasset' : null } |
   { 'BridgeEntity' : null } |
   { 'Person' : null } |
   { 'Location' : null };
+export type HeaderField = [string, string];
+export interface Request {
+  'url' : string,
+  'method' : string,
+  'body' : Array<number>,
+  'headers' : Array<HeaderField>,
+}
+export interface Response {
+  'body' : Array<number>,
+  'headers' : Array<HeaderField>,
+  'upgrade' : boolean,
+  'streaming_strategy' : [] | [StreamingStrategy],
+  'status_code' : number,
+}
+export type StreamingCallback = ActorMethod<
+  [StreamingCallbackToken],
+  StreamingCallbackResponse,
+>;
+export interface StreamingCallbackResponse {
+  'token' : [] | [StreamingCallbackToken],
+  'body' : Array<number>,
+}
+export interface StreamingCallbackToken {
+  'key' : string,
+  'index' : bigint,
+  'content_encoding' : string,
+}
+export type StreamingStrategy = {
+    'Callback' : {
+      'token' : StreamingCallbackToken,
+      'callback' : StreamingCallback,
+    }
+  };
 export interface _SERVICE {
-  'createBridge' : (arg_0: BridgeEntityInitiationObject) => Promise<
-      BridgeEntity
-    >,
-  'createEntity' : (arg_0: EntityInitiationObject) => Promise<Entity>,
-  'createEntityAndBridge' : (
-      arg_0: EntityInitiationObject,
-      arg_1: BridgeEntityInitiationObject,
-    ) => Promise<[Entity, BridgeEntity]>,
-  'create_bridge' : (arg_0: BridgeEntityInitiationObject) => Promise<
-      BridgeEntity
-    >,
-  'create_entity' : (arg_0: EntityInitiationObject) => Promise<Entity>,
-  'create_entity_and_bridge' : (
-      arg_0: EntityInitiationObject,
-      arg_1: BridgeEntityInitiationObject,
-    ) => Promise<[Entity, BridgeEntity]>,
-  'get_bridge' : (arg_0: string) => Promise<[] | [BridgeEntity]>,
-  'get_bridge_ids_by_entity_id' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<string>>,
-  'get_bridged_entities_by_entity_id' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<Entity>>,
-  'get_bridges_by_entity_id' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<Array<BridgeEntity>>,
-  'get_entity' : (arg_0: string) => Promise<[] | [Entity]>,
-  'get_entity_and_bridge_ids' : (
-      arg_0: string,
-      arg_1: boolean,
-      arg_2: boolean,
-      arg_3: boolean,
-    ) => Promise<[[] | [Entity], Array<string>]>,
+  'createBridge' : ActorMethod<[BridgeEntityInitiationObject], BridgeEntity>,
+  'createEntity' : ActorMethod<[EntityInitiationObject], Entity>,
+  'createEntityAndBridge' : ActorMethod<
+    [EntityInitiationObject, BridgeEntityInitiationObject],
+    [Entity, BridgeEntity],
+  >,
+  'create_bridge' : ActorMethod<[BridgeEntityInitiationObject], BridgeEntity>,
+  'create_entity' : ActorMethod<[EntityInitiationObject], Entity>,
+  'create_entity_and_bridge' : ActorMethod<
+    [EntityInitiationObject, BridgeEntityInitiationObject],
+    [Entity, BridgeEntity],
+  >,
+  'get_bridge' : ActorMethod<[string], [] | [BridgeEntity]>,
+  'get_bridge_ids_by_entity_id' : ActorMethod<
+    [string, boolean, boolean, boolean],
+    Array<string>,
+  >,
+  'get_bridged_entities_by_entity_id' : ActorMethod<
+    [string, boolean, boolean, boolean],
+    Array<Entity>,
+  >,
+  'get_bridges_by_entity_id' : ActorMethod<
+    [string, boolean, boolean, boolean],
+    Array<BridgeEntity>,
+  >,
+  'get_entity' : ActorMethod<[string], [] | [Entity]>,
+  'get_entity_and_bridge_ids' : ActorMethod<
+    [string, boolean, boolean, boolean],
+    [[] | [Entity], Array<string>],
+  >,
+  'http_request' : ActorMethod<[Request], Response>,
+  'http_request_update' : ActorMethod<[Request], Response>,
 }
