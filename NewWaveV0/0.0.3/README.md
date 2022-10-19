@@ -34,6 +34,29 @@ Which will start a server at `http://localhost:8080`, proxying API requests to t
 
 Note: while the protocol doesn't need or have a UI, the asset's canister here serves as a simple way of testing the protocol by simulating how an application might create Entities and connect them via Bridges.
 
+Call from CLI (local):
+dfx canister call newwave create_entity "(record { _internalId = null; _creator = null; _entityType = variant {Webasset}; })"
+dfx canister call newwave get_entity '("D6C65674-91BE-170D-BCC0-000000000000")'
+dfx canister call newwave create_bridge '(record { _internalId = null; _creator = null; _entityType = variant {Webasset}; _bridgeType = variant {OwnerCreated}; _fromEntityId = "20621F98-91B0-170D-B0F5-000000000000"; _toEntityId = "D6C65674-91BE-170D-BCC0-000000000000";  })'
+dfx canister call newwave get_bridge '("76CBDF90-9246-170D-9C79-000000000000")'
+dfx canister call newwave get_bridge_ids_by_entity_id '("D6C65674-91BE-170D-BCC0-000000000000", true, true, true)'
+dfx canister call newwave get_bridges_by_entity_id '("D6C65674-91BE-170D-BCC0-000000000000", true, true, true)'
+ dfx canister call newwave create_entity_and_bridge '(record { _internalId = null; _creator = null; _entityType = variant {Webasset}; }, record { _internalId = null; _creator = null; _entityType = variant {Webasset}; _bridgeType = variant {OwnerCreated}; _fromEntityId = "20621F98-91B0-170D-B0F5-000000000000"; _toEntityId = "D6C65674-91BE-170D-BCC0-000000000000";  })'
+ dfx canister call newwave get_bridged_entities_by_entity_id '("D6C65674-91BE-170D-BCC0-000000000000", true, true, true)'
+ dfx canister call newwave get_entity_and_bridge_ids '("D6C65674-91BE-170D-BCC0-000000000000", true, true, true)'
+
+Call from CLI (IC):
+ first deploy to IC mainnet: dfx deploy --network ic
+ dfx canister --network ic call newwave create_entity "(record { _internalId = null; _creator = null; _entityType = variant {Webasset}; })"
+ dfx canister --network ic call newwave get_entity '("C923CD99-92E1-170D-908C-000000000000")'
+ dfx canister --network ic call newwave create_bridge '(record { _internalId = null; _creator = null; _entityType = variant {Webasset}; _bridgeType = variant {OwnerCreated}; _fromEntityId = "01A90437-92F8-170D-9F6C-000000000000"; _toEntityId = "C923CD99-92E1-170D-908C-000000000000";  })'
+ dfx canister --network ic call newwave get_bridge '("E64582AA-9302-170D-A43D-000000000000")'
+ dfx canister --network ic call newwave get_bridge_ids_by_entity_id '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
+dfx canister --network ic call newwave get_bridges_by_entity_id '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
+dfx canister --network ic call newwave create_entity_and_bridge '(record { _internalId = null; _creator = null; _entityType = variant {Person}; }, record { _internalId = null; _creator = null; _entityType = variant {Webasset}; _bridgeType = variant {OwnerCreated}; _fromEntityId = "C923CD99-92E1-170D-908C-000000000000"; _toEntityId = "";  })'
+ dfx canister --network ic call newwave get_bridged_entities_by_entity_id '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
+ dfx canister --network ic call newwave get_entity_and_bridge_ids '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
+
 
 ## Dev notes
 
@@ -65,6 +88,9 @@ private let rr = XorShift.toReader(XorShift.XorShift64(null));
 to get identifier of canister: get canister principal (let canisterId = Principal.fromActor(Invoice);), Principal.toBlob(p), Blob to [Nat8] (https://forum.dfinity.org/t/type-mismatch-in-ledger-canister-and-invoice-canister/13300/4)
 
 ## TODOs
+TODO: bug in create_entity_and_bridge: Entity's and Bridge's internalIds are the same
+TODO: bug in create functions: canister's id is taken as owner and creator
+TODO: update and delete functions
 TODO: Replace with identifier of canister f.e.
 TODO: should bridge id be assignable? probably: always assign random id
 TODO: fill as stringified object with fields as listed in listOfEntitySpecificFieldKeys
