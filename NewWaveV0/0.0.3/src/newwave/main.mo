@@ -29,7 +29,7 @@ actor {
     return result;
   };
 
-  public shared ({ caller }) func create_bridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async BridgeEntity.BridgeEntity {
+  public shared ({ caller }) func create_bridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async ?BridgeEntity.BridgeEntity {
     let result = await createBridge(bridgeToCreate);
     return result;
     // return BridgeCreator.create_bridge(bridgeToCreate); TODO: possible to return promise? Would this speed up this canister?
@@ -50,7 +50,7 @@ actor {
     return result;
   };
 
-  public shared ({ caller }) func create_entity_and_bridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, BridgeEntity.BridgeEntity) {
+  public shared ({ caller }) func create_entity_and_bridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, ?BridgeEntity.BridgeEntity) {
     let result = await createEntityAndBridge(entityToCreate, bridgeToCreate);
     return result;
   };
@@ -67,13 +67,40 @@ actor {
 
 // HELPER FUNCTIONS
   public shared ({ caller }) func createEntity(entityToCreate : Entity.EntityInitiationObject) : async (Entity.Entity) {
-    // TODO: potentially update entityToCreate fields (might vary depending on EntityType)
-    // TODO: potentially assign final internal_id to Entity (might vary depending on EntityType)
-    let entity : Entity.Entity = Entity.Entity(entityToCreate, caller);
-    // stores via entity_type_storage (abstraction over multiple entity_storage_units)
-    let result = putEntity(entity.internalId, entity);
-    assert(Text.equal(result, entity.internalId));
-    return entity;
+    // perform duplication checks (with externalId)
+    let existingEntity : ?Entity.Entity = switch(entityToCreate._externalId) {
+      case null { null };
+      case (?"") { null };
+      case (?entityToCreateExternalId) {
+        switch(entityToCreate._entityType) {
+          case (#Webasset) {
+            switch(getEntityByAttribute("externalId", entityToCreateExternalId)) {
+              case null { null };
+              case (?entityFound) { ?entityFound };
+            };
+          };
+          case _ { // TODO: add more Entity Types
+            null
+          };
+        };
+      };
+    };
+    switch(existingEntity) {
+      case (?entityEntry) {
+        // return existing Entity
+        return entityEntry;
+      };
+      case null {
+        // create Entity
+        // TODO: potentially update entityToCreate fields (might vary depending on EntityType)
+        // TODO: potentially assign final internal_id to Entity (might vary depending on EntityType)
+        let entity : Entity.Entity = await Entity.Entity(entityToCreate, caller);
+        // stores via entity_type_storage (abstraction over multiple entity_storage_units)
+        let result = putEntity(entity.internalId, entity);
+        assert(Text.equal(result, entity.internalId));
+        return entity;  
+      };
+    };
   };
 
   stable var entitiesStorageStable : [(Text, Entity.Entity)] = [];
@@ -89,10 +116,71 @@ actor {
     return result;
   };
 
-  public shared ({ caller }) func createBridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async BridgeEntity.BridgeEntity {
-    let bridge : BridgeEntity.BridgeEntity = BridgeEntity.BridgeEntity(bridgeToCreate, caller);
+  func checkIfEntityWithAttributeExists(attribute : Text, attributeValue : Text) : Bool {
+    switch(attribute) {
+      case "internalId" {
+        switch(getEntity(attributeValue)) {
+          case null { return false; };
+          case _ { return true; };
+        };
+      };
+      case "externalId" {
+        for ((k, entity) in entitiesStorage.entries()) {
+          if (entity.externalId == ?attributeValue) {
+            return true;
+          };          
+        };
+        return false;
+      };
+      case _ { return false; }
+    };
+  };
+
+  func getEntityByAttribute(attribute : Text, attributeValue : Text) : ?Entity.Entity {
+    switch(attribute) {
+      case "internalId" {
+        return getEntity(attributeValue);
+      };
+      case "externalId" {
+        for ((k, entity) in entitiesStorage.entries()) {
+          if (entity.externalId == ?attributeValue) {
+            return ?entity;
+          };          
+        };
+        return null;
+      };
+      case _ { return null; }
+    };
+  };
+
+  func getEntitiesByAttribute(attribute : Text, attributeValue : Text) : [Entity.Entity] {
+    switch(attribute) {
+      case "externalId" {
+        var entitiesToReturn = List.nil<Entity.Entity>();
+        for ((k, entity) in entitiesStorage.entries()) {
+          if (entity.externalId == ?attributeValue) {
+            entitiesToReturn := List.push<Entity.Entity>(entity, entitiesToReturn);
+          };          
+        };
+        return List.toArray<Entity.Entity>(entitiesToReturn);
+      };
+      case _ { return []; }
+    };
+  };
+
+  public shared ({ caller }) func createBridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async ?BridgeEntity.BridgeEntity {
+    // ensure that bridged Entities exist
+    switch(checkIfEntityWithAttributeExists("internalId", bridgeToCreate._fromEntityId)) {
+      case false { return null; }; // TODO: potentially return error message instead
+      case true {
+        if (checkIfEntityWithAttributeExists("internalId", bridgeToCreate._toEntityId) == false) {
+          return null; // TODO: potentially return error message instead
+        };
+      };
+    };
+    let bridge : BridgeEntity.BridgeEntity = await BridgeEntity.BridgeEntity(bridgeToCreate, caller);
     let result = putBridge(bridge);
-    return result;
+    return ?result;
   };
 
   stable var bridgesStorageStable : [(Text, BridgeEntity.BridgeEntity)] = [];
@@ -270,7 +358,7 @@ actor {
     return collectingResultsBuffer.toArray();
   };
 
-  public shared ({ caller }) func createEntityAndBridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, BridgeEntity.BridgeEntity) {  
+  public shared ({ caller }) func createEntityAndBridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, ?BridgeEntity.BridgeEntity) {  
     let createdEntity : Entity.Entity = await createEntity(entityToCreate);
     var updatedBridgeToCreate = bridgeToCreate;
     switch(bridgeToCreate._fromEntityId) {
@@ -311,7 +399,7 @@ actor {
         };
       };
     };
-    let bridgeEntity : BridgeEntity.BridgeEntity = await createBridge(updatedBridgeToCreate);
+    let bridgeEntity : ?BridgeEntity.BridgeEntity = await createBridge(updatedBridgeToCreate);
     return (createdEntity, bridgeEntity);
   };
 
@@ -870,7 +958,7 @@ actor {
         _toEntityId = inputToEntityId;
         _state = ?#Pending; // TODO: fill appropriately
       };
-      let entity : BridgeEntity.BridgeEntity = await create_bridge(entityInitiationObject);
+      let entity : ?BridgeEntity.BridgeEntity = await create_bridge(entityInitiationObject);
       let body = Text.encodeUtf8(debug_show(entity));
       let response = {
         body = body;
@@ -1060,7 +1148,7 @@ actor {
         _state = ?#Pending; // TODO: fill appropriately
       };
 
-      let entityAndBridge : (Entity.Entity, BridgeEntity.BridgeEntity) = await create_entity_and_bridge(entityInitiationObject, bridgeInitiationObject);
+      let entityAndBridge : (Entity.Entity, ?BridgeEntity.BridgeEntity) = await create_entity_and_bridge(entityInitiationObject, bridgeInitiationObject);
       let body = Text.encodeUtf8(debug_show(entityAndBridge));
       let response = {
         body = body;

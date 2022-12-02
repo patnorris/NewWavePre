@@ -57,6 +57,13 @@ dfx canister --network ic call newwave create_entity_and_bridge '(record { _inte
  dfx canister --network ic call newwave get_bridged_entities_by_entity_id '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
  dfx canister --network ic call newwave get_entity_and_bridge_ids '("C923CD99-92E1-170D-908C-000000000000", true, true, true)'
 
+Top up cycles:
+dfx identity --network=ic get-wallet
+dfx wallet --network ic balance
+dfx canister --network ic status newwave
+dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 3000000000000 newwave
+
+2022-11-15: topped up 3.3T cycles, has balance of 7.2T
 
 ## Dev notes
 

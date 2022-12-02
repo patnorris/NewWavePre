@@ -45,10 +45,11 @@ module  {
   public func BridgeEntity(
     initiationObject : BridgeEntityInitiationObject,
     caller : Principal,
-  ) : BridgeEntity { // or Entity.Entity
+  ) : async BridgeEntity { // or Entity.Entity
     return {
       internalId : Text = switch(initiationObject._internalId) { // TODO: should bridge id be assignable? probably: always assign random id
-        case null { Utils.newUniqueId() };
+        //case null { Utils.newUniqueId() };
+        case null { await Utils.newRandomUniqueId() };
         case (?customId) { customId };
       };
       creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));

@@ -167,12 +167,16 @@ h3 {
   background-color: red;
 }
 
+.form-container .nftfield {
+  background-color: rgb(95, 87, 87);
+}
+
 /* Add some hover effects to buttons */
 .form-container .btn:hover, .open-button:hover {
   opacity: 1;
 }
 
-.fullwidthinput * { width:100%;}</style><script defer="defer" src="index.js"></script></head><body><div class="topnav"><a href="#">Personal NFT Gallery</a> <a href="#create">Create</a> <a href="#galleries">My Galleries</a> <a href="#">Explore</a></div><h3>Want to have a space for your NFTs?</h3><h3>Want to show your collection to the world?</h3><h3>Want to have your Personal NFT Gallery as a webpage?</h3><section id="login"></section><h3 id="create"><b>Create a new Personal NFT Gallery</b></h3><button type="button" id="createButton" disabled="disabled">Create Gallery</button><p id="createSubtext">The Gallery is an NFT itself and will be sent to your wallet. This way you know it's truly yours!</p><h3 id="galleries"><b>My Personal NFT Galleries</b></h3><p id="galleriesSubtext"></p><div id="userGalleries" class="user-galleries"></div><div class="form-popup" id="editView"><form class="form-container" width="100%"><h1>Edit Your Gallery</h1><label for="galleryName"><b>Gallery Name</b></label> <input class="fullwidthinput" placeholder="What's the name of your gallery?" name="galleryName" id="galleryname"><br><label for="galleryDescription"><b>Description</b></label> <input class="fullwidthinput" placeholder="Describe your gallery" name="galleryDescription" id="gallerydescription"><br><label for="ownerName"><b>Your name</b></label> <input class="fullwidthinput" placeholder="Any name you'd like to provide?" name="ownerName" id="ownername"><br><label for="ownerContactInfo"><b>Your contact info</b></label> <input class="fullwidthinput" placeholder="Any contact info visitors should have?" name="ownerContactInfo" id="ownercontactinfo"><br><label for="galleryimagelink"><b>Links to NFTs to be Displayed</b></label><div id="galleryimagelinks" width="100%"><input width="100%" class="fullwidthinput" type="url" placeholder="The NFT's URL" name="galleryimagelink"></div><button type="button" onclick="addNftFieldToGallery()">Add NFT field</button><br><button type="submit" class="btn" id="submitbutton">Save Changes</button> <button type="button" class="btn cancel" onclick="closeEditView()">Cancel</button></form></div><script>/* function openEditView(gallery) {
+.fullwidthinput * { width:100%; }</style><script defer="defer" src="index.js"></script></head><body><div class="topnav"><a href="#">Personal NFT Gallery</a> <a href="#create">Create</a> <a href="#galleries">My Galleries</a> <a href="#">Explore</a></div><h3>Want to have a space for your NFTs?</h3><h3>Want to show your collection to the world?</h3><h3>Want to have your Personal NFT Gallery as a webpage?</h3><section id="login"></section><h3 id="create"><b>Create a new Personal NFT Gallery</b></h3><button type="button" id="createButton" disabled="disabled">Create Gallery</button><p id="createSubtext">The Gallery is an NFT itself and will be sent to your wallet. This way you know it's truly yours!</p><h3 id="galleries"><b>My Personal NFT Galleries</b></h3><p id="galleriesSubtext"></p><div id="userGalleries" class="user-galleries"></div><div class="form-popup" id="editView"><form class="form-container" width="100%"><h1>Edit Your Gallery</h1><label for="galleryName"><b>Gallery Name</b></label> <input class="fullwidthinput" placeholder="What's the name of your gallery?" name="galleryName" id="galleryname"><br><label for="galleryDescription"><b>Description</b></label> <input class="fullwidthinput" placeholder="Describe your gallery" name="galleryDescription" id="gallerydescription"><br><label for="ownerName"><b>Your name</b></label> <input class="fullwidthinput" placeholder="Any name you'd like to provide?" name="ownerName" id="ownername"><br><label for="ownerContactInfo"><b>Your contact info</b></label> <input class="fullwidthinput" placeholder="Any contact info visitors should have?" name="ownerContactInfo" id="ownercontactinfo"><br><label for="galleryimagelink"><b>Links to NFTs to be Displayed</b></label><div id="galleryimagelinks" width="100%"><input width="100%" class="fullwidthinput" type="url" placeholder="The NFT's URL" name="galleryimagelink"></div><br><button type="button" class="btn nftfield" onclick="addNftFieldToGallery()">Add NFT field</button><br><button type="submit" class="btn" id="submitbutton">Save Changes</button> <button type="button" class="btn cancel" onclick="closeEditView()">Cancel</button></form></div><script>/* function openEditView(gallery) {
     console.log('openEditView');
     console.log(gallery);
     document.getElementById("editView").style.display = "block";
@@ -182,12 +186,40 @@ h3 {
     document.getElementById("editView").style.display = "none";
   }
 
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+    return true;
+  };
+
+  const inputHandler = function(e) {
+    if (!isValidUrl(e.target.value)) {
+      e.target.value = null;
+      e.target.placeholder = "Please only enter valid URLs";
+    }
+  }
+
   function addNftFieldToGallery() {
+    var inputDiv = document.createElement("div");
+    inputDiv.style = "width:100%;";
+    var removeButton = document.createElement("button");
+    removeButton.style = "font-size:30px;width:40px;margin-right:5px;vertical-align:middle;";
+    removeButton.innerHTML = "X";
+    removeButton.addEventListener('click', function() {
+      document.getElementById("galleryimagelinks").removeChild(inputDiv);
+    });
     var input = document.createElement("input");
-    input.width = "100%";
     input.class = "fullwidthinput";
+    input.style = "width:85%;";
     input.type = "url";
     input.placeholder = "The NFT's URL";
     input.name = "galleryimagelink";
-    document.getElementById("galleryimagelinks").appendChild(input);
+    input.addEventListener('change', inputHandler);
+    inputDiv.appendChild(removeButton);
+    inputDiv.appendChild(input);
+    document.getElementById("galleryimagelinks").appendChild(inputDiv);
   }</script><div class="clearfix"></div><footer class="w3-light-grey w3-padding-64 w3-center" id="about"><p>Powered by <a href="https://kmj74-syaaa-aaaai-acnza-cai.ic0.app/" target="_blank" class="w3-hover-text-green">Personal NFT Gallery</a> and hosted on <a href="https://internetcomputer.org/" target="_blank" class="w3-hover-text-green">Internet Computer</a></p></footer></body></html>

@@ -10,6 +10,7 @@ import Debug      "mo:base/Debug";
 
 import UUID "mo:uuid/UUID";
 import Source "mo:uuid/Source";
+import SourceAsync "mo:uuid/async/SourceV4";
 //import AsyncSource "mo:uuid/async/SourceV4";
 import XorShift "mo:rand/XorShift";
 
@@ -20,5 +21,10 @@ module {
     let se = Source.Source(rr, c);
     let id = se.new();
     UUID.toText(id);
+	};
+
+  public func newRandomUniqueId() : async Text {
+    let g = SourceAsync.Source();
+    UUID.toText(await g.new());
 	};
 }

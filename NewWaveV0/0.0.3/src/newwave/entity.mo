@@ -64,10 +64,11 @@ module {
   public func Entity(
     initiationObject : EntityInitiationObject,
     caller : Principal,
-  ) : Entity {
+  ) : async Entity {
     return {
       internalId : Text = switch(initiationObject._internalId) {
-        case null { Utils.newUniqueId() };
+        //case null { Utils.newUniqueId() };
+        case null { await Utils.newRandomUniqueId() };
         case (?customId) { customId };
       };
       creationTimestamp : Nat64 = Nat64.fromNat(Int.abs(Time.now()));

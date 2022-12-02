@@ -68,6 +68,38 @@ npm start
 
 Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 8000.
 
+Top up cycles:
+dfx identity --network=ic get-wallet
+dfx wallet --network ic balance
+dfx canister --network ic status PersonalNFTGallery_backend
+dfx canister --network ic status PersonalNFTGallery_frontend
+dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 3000000000000 PersonalNFTGallery_backend
+dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 300000000000 PersonalNFTGallery_frontend
+
+2022-11-15: 3T for PersonalNFTGallery_backend (new balance: 6.8T); 3.3T for PersonalNFTGallery_frontend (new balance: 6.6T)
+
+To update placeholder image (only image on new gallery):
+in backend, uncomment function updatePlaceholderImage
+in frontend, in init function:
+let image = await fetch("./PersonalNFTGallery_placeholderImage-min.png");
+  console.log('image');
+  console.log(image);
+  let imageBlob = await image.blob();
+  console.log('imageBlob');
+  console.log(imageBlob);
+  let imageBlobText = await imageBlob.text();
+  console.log('imageBlobText');
+  console.log(imageBlobText);
+  let imageBlobArray = await imageBlob.arrayBuffer();
+  console.log('imageBlobArray');
+  console.log(imageBlobArray);
+  let imageBlobUint = new Uint8Array(imageBlobArray);
+  console.log('imageBlobUint');
+  console.log(imageBlobUint);
+  console.log('imageBlobUint ...');
+  console.log([...imageBlobUint]);
+  await PersonalNFTGallery_backend.updatePlaceholderImage([...imageBlobUint]);
+
 ### Note on frontend environment variables
 
 If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:

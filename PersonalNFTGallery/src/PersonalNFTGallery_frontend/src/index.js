@@ -8,6 +8,25 @@ import { StoicIdentity } from "ic-stoic-identity";
 import { AccountIdentifier, LedgerCanister, ICP } from "@dfinity/nns";
 import { HttpAgent } from "@dfinity/agent";
 
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+  } catch (e) {
+    console.error('in isValidUrl');
+    console.error(e);
+    console.error(url);
+    return false;
+  }
+  return true;
+};
+
+const inputHandler = function(e) {
+  if (!isValidUrl(e.target.value)) {
+    e.target.value = null;
+    e.target.placeholder = "Please only enter valid URLs";
+  }
+};
+
 const initiateCollapsibles = () => {
   var coll = document.getElementsByClassName('collapsible');
   var i;
@@ -64,24 +83,50 @@ const openEditView = (evt) => {
   // show bridged NFT URLs
   var urlsInputElementsToDisplay = [];
   for (var j = 0; j < mediaUrls.length; j++) {
-    var input = document.createElement("input");
-    input.width = "100%";
+    const inputDiv = document.createElement("div");
+    inputDiv.style = "width:100%;";
+    const removeButton = document.createElement("button");
+    removeButton.style = "font-size:30px;width:40px;margin-right:5px;vertical-align:middle;";
+    removeButton.innerHTML = "X";
+    removeButton.addEventListener('click', function() {
+      document.getElementById("galleryimagelinks").removeChild(inputDiv);
+    });
+    const input = document.createElement("input");
     input.class = "fullwidthinput";
+    input.style = "width:85%;";
     input.type = "url";
     input.placeholder = "The NFT's URL";
     input.name = "galleryimagelink";
-    input.value = mediaUrls[j];
-    urlsInputElementsToDisplay.push(input);      
+    input.addEventListener('change', inputHandler);
+    if (isValidUrl(mediaUrls[j])) {
+      input.value = mediaUrls[j];
+    } else {
+      input.value = "InvalidURL"; //potentially don't include element for invalid URL at all
+    }
+    inputDiv.appendChild(removeButton);
+    inputDiv.appendChild(input);
+    urlsInputElementsToDisplay.push(inputDiv);     
   }
   if (urlsInputElementsToDisplay.length === 0) {
     // at least one empty field should be displayed
-    var input = document.createElement("input");
-    input.width = "100%";
+    const inputDiv = document.createElement("div");
+    inputDiv.style = "width:100%;";
+    const removeButton = document.createElement("button");
+    removeButton.style = "font-size:30px;width:40px;margin-right:5px;vertical-align:middle;";
+    removeButton.innerHTML = "X";
+    removeButton.addEventListener('click', function() {
+      document.getElementById("galleryimagelinks").removeChild(inputDiv);
+    });
+    const input = document.createElement("input");
     input.class = "fullwidthinput";
+    input.style = "width:85%;";
     input.type = "url";
     input.placeholder = "The NFT's URL";
     input.name = "galleryimagelink";
-    urlsInputElementsToDisplay.push(input);  
+    input.addEventListener('change', inputHandler);
+    inputDiv.appendChild(removeButton);
+    inputDiv.appendChild(input);
+    urlsInputElementsToDisplay.push(inputDiv); 
   }  
   document.getElementById("galleryimagelinks").replaceChildren(...urlsInputElementsToDisplay);
 
@@ -95,8 +140,8 @@ const openEditView = (evt) => {
     let mediaUrlsToDisplay = [];
     let urlInputElements = document.getElementById("galleryimagelinks").children;
     for (var y = 0; y < urlInputElements.length; y++) {
-      if (urlInputElements[y].value !== "") { // TODO: ensure it's a url
-        mediaUrlsToDisplay.push(urlInputElements[y].value);
+      if (urlInputElements[y].children[1].value !== "" && isValidUrl(urlInputElements[y].children[1].value)) { // ensure it's a url
+        mediaUrlsToDisplay.push(urlInputElements[y].children[1].value);
       } 
     }
 
@@ -108,7 +153,11 @@ const openEditView = (evt) => {
       ownerContactInfo: document.getElementById("ownercontactinfo").value,
       mediaUrlsToDisplay: mediaUrlsToDisplay,
     };
+    console.log("###################newGalleryData#########################");
+    console.log(newGalleryData);
     const updatedGallery = await actor.updateUserGallery(newGalleryData);
+    console.log("###################updatedGallery#########################");
+    console.log(updatedGallery);
 
     // reload user's galleries
     loadUserGalleries(actor);

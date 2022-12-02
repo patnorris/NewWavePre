@@ -73,7 +73,7 @@ module {
         get_bridge                          : Text                          -> async ?BridgeEntity;
         get_bridge_ids_by_entity_id         : (entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) -> async [Text];
         get_bridges_by_entity_id            : (entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) -> async [BridgeEntity];
-        create_entity_and_bridge            : (entityToCreate : EntityInitiationObject, bridgeToCreate : BridgeEntityInitiationObject) -> async (Entity, BridgeEntity);
+        create_entity_and_bridge            : (entityToCreate : EntityInitiationObject, bridgeToCreate : BridgeEntityInitiationObject) -> async (Entity, ?BridgeEntity);
         get_bridged_entities_by_entity_id   : (entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) -> async [Entity];
         get_entity_and_bridge_ids           : (entityId : Text, includeBridgesFromEntity : Bool, includeBridgesToEntity : Bool, includeBridgesPendingForEntity : Bool) -> async (?Entity, [Text]);
     };

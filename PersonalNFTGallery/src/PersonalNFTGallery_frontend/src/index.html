@@ -180,12 +180,16 @@ h3 {
   background-color: red;
 }
 
+.form-container .nftfield {
+  background-color: rgb(95, 87, 87);
+}
+
 /* Add some hover effects to buttons */
 .form-container .btn:hover, .open-button:hover {
   opacity: 1;
 }
 
-.fullwidthinput * { width:100%;}
+.fullwidthinput * { width:100%; }
 
 </style>
 </head>
@@ -235,7 +239,8 @@ h3 {
     <div id="galleryimagelinks" width="100%">
       <input width="100%" class="fullwidthinput" type="url" placeholder="The NFT's URL" name="galleryimagelink" >
     </div>
-    <button type="button" onclick="addNftFieldToGallery()">Add NFT field</button>
+    <br>
+    <button type="button" class="btn nftfield" onclick="addNftFieldToGallery()">Add NFT field</button>
     <br>
     <button type="submit" class="btn" id="submitbutton">Save Changes</button>
     <button type="button" class="btn cancel" onclick="closeEditView()">Cancel</button>
@@ -253,14 +258,42 @@ h3 {
     document.getElementById("editView").style.display = "none";
   }
 
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+    return true;
+  };
+
+  const inputHandler = function(e) {
+    if (!isValidUrl(e.target.value)) {
+      e.target.value = null;
+      e.target.placeholder = "Please only enter valid URLs";
+    }
+  }
+
   function addNftFieldToGallery() {
+    var inputDiv = document.createElement("div");
+    inputDiv.style = "width:100%;";
+    var removeButton = document.createElement("button");
+    removeButton.style = "font-size:30px;width:40px;margin-right:5px;vertical-align:middle;";
+    removeButton.innerHTML = "X";
+    removeButton.addEventListener('click', function() {
+      document.getElementById("galleryimagelinks").removeChild(inputDiv);
+    });
     var input = document.createElement("input");
-    input.width = "100%";
     input.class = "fullwidthinput";
+    input.style = "width:85%;";
     input.type = "url";
     input.placeholder = "The NFT's URL";
     input.name = "galleryimagelink";
-    document.getElementById("galleryimagelinks").appendChild(input);
+    input.addEventListener('change', inputHandler);
+    inputDiv.appendChild(removeButton);
+    inputDiv.appendChild(input);
+    document.getElementById("galleryimagelinks").appendChild(inputDiv);
   }
 </script>
 
