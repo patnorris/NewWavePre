@@ -81,4 +81,9 @@ module  {
       };
     }
   };
+
+  public type BridgeEntityUpdateObject = Entity.EntityUpdateObject and {
+    state : ?BridgeState.BridgeState;
+    bridgeType : ?BridgeType.BridgeType;
+  };
 };

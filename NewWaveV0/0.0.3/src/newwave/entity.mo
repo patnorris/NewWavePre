@@ -93,4 +93,12 @@ module {
       listOfEntitySpecificFieldKeys : [Text] = [];
     }
   };
+
+  public type EntityUpdateObject = {
+    internalId : Text;
+    settings : ?EntitySettings.EntitySettings;
+    name : ?Text;
+    description : ?Text;
+    keywords : ?[Text];
+  };
 };

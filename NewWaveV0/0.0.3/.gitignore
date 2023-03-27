@@ -9,6 +9,8 @@
 
 # dfx temporary files
 .dfx/
+.dfx/**
+**/.dfx/
 
 # frontend code
 node_modules/

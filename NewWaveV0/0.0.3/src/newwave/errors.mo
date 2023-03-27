@@ -1,7 +1,9 @@
 module {
     public type NewWaveError = {
-        #Unauthorized;
+        #Unauthorized : Text;
         #OwnerNotFound;
+        #EntityNotFound;
+        #BridgeNotFound;
         #OperatorNotFound;
         #TokenNotFound;
         #ExistedNFT;

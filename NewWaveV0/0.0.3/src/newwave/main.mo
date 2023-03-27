@@ -8,18 +8,22 @@ import Buffer "mo:base/Buffer";
 import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Nat "mo:base/Nat";
+import Option "mo:base/Option";
 
 import EntityType "entity_type";
-//import EntitySettings "entity_settings";
+import EntitySettings "entity_settings";
 import Entity "entity";
 import BridgeEntity "bridge_entity";
+import BridgeType "bridge_type";
+import BridgeState "bridge_state";
 
 import HTTP "./Http";
+import Types "./Types";
 
 actor {
 // INTERFACE
   public shared ({ caller }) func create_entity(entityToCreate : Entity.EntityInitiationObject) : async Entity.Entity {
-    let result = await createEntity(entityToCreate);
+    let result = await createEntity(caller, entityToCreate);
     return result;
     // return EntityCreator.create_entity(); throws error (doesn't match expected type) -> TODO: possible to return promise? Would this speed up this canister? e.g. try ... : async (async Entity.Entity)
   };
@@ -30,7 +34,7 @@ actor {
   };
 
   public shared ({ caller }) func create_bridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async ?BridgeEntity.BridgeEntity {
-    let result = await createBridge(bridgeToCreate);
+    let result = await createBridge(caller, bridgeToCreate);
     return result;
     // return BridgeCreator.create_bridge(bridgeToCreate); TODO: possible to return promise? Would this speed up this canister?
   };
@@ -51,7 +55,7 @@ actor {
   };
 
   public shared ({ caller }) func create_entity_and_bridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, ?BridgeEntity.BridgeEntity) {
-    let result = await createEntityAndBridge(entityToCreate, bridgeToCreate);
+    let result = await createEntityAndBridge(caller, entityToCreate, bridgeToCreate);
     return result;
   };
 
@@ -65,8 +69,23 @@ actor {
     return result;
   };
 
+  public shared ({ caller }) func delete_bridge(bridgeId : Text) : async Types.BridgeResult {
+    let result = await deleteBridge(caller, bridgeId);
+    return result;
+  };
+
+  public shared ({ caller }) func update_bridge(bridgeUpdateObject : BridgeEntity.BridgeEntityUpdateObject) : async Types.BridgeResult {
+    let result = await updateBridge(caller, bridgeUpdateObject);
+    return result;
+  };
+
+  public shared ({ caller }) func update_entity(entityUpdateObject : Entity.EntityUpdateObject) : async Types.EntityResult {
+    let result = await updateEntity(caller, entityUpdateObject);
+    return result;
+  };
+
 // HELPER FUNCTIONS
-  public shared ({ caller }) func createEntity(entityToCreate : Entity.EntityInitiationObject) : async (Entity.Entity) {
+  func createEntity(caller : Principal, entityToCreate : Entity.EntityInitiationObject) : async (Entity.Entity) {
     // perform duplication checks (with externalId)
     let existingEntity : ?Entity.Entity = switch(entityToCreate._externalId) {
       case null { null };
@@ -168,7 +187,7 @@ actor {
     };
   };
 
-  public shared ({ caller }) func createBridge(bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async ?BridgeEntity.BridgeEntity {
+  func createBridge(caller : Principal, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async ?BridgeEntity.BridgeEntity {
     // ensure that bridged Entities exist
     switch(checkIfEntityWithAttributeExists("internalId", bridgeToCreate._fromEntityId)) {
       case false { return null; }; // TODO: potentially return error message instead
@@ -358,8 +377,8 @@ actor {
     return collectingResultsBuffer.toArray();
   };
 
-  public shared ({ caller }) func createEntityAndBridge(entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, ?BridgeEntity.BridgeEntity) {  
-    let createdEntity : Entity.Entity = await createEntity(entityToCreate);
+  func createEntityAndBridge(caller : Principal, entityToCreate : Entity.EntityInitiationObject, bridgeToCreate : BridgeEntity.BridgeEntityInitiationObject) : async (Entity.Entity, ?BridgeEntity.BridgeEntity) {  
+    let createdEntity : Entity.Entity = await createEntity(caller, entityToCreate);
     var updatedBridgeToCreate = bridgeToCreate;
     switch(bridgeToCreate._fromEntityId) {
       case ("") {
@@ -399,7 +418,7 @@ actor {
         };
       };
     };
-    let bridgeEntity : ?BridgeEntity.BridgeEntity = await createBridge(updatedBridgeToCreate);
+    let bridgeEntity : ?BridgeEntity.BridgeEntity = await createBridge(caller, updatedBridgeToCreate);
     return (createdEntity, bridgeEntity);
   };
 
@@ -443,6 +462,181 @@ actor {
       case (?entity) { 
         let bridgeIds : [Text] = getBridgeIdsByEntityId(entityId, includeBridgesFromEntity, includeBridgesToEntity, includeBridgesPendingForEntity);
         return (?entity, bridgeIds);
+      };
+    };
+  };
+
+  func deleteBridgeFromStorage(bridgeId : Text) : Bool {
+    bridgesStorage.delete(bridgeId);
+    return true;
+  };
+
+  func detachBridgeFromEntities(bridge : BridgeEntity.BridgeEntity) : Bool {
+    // Delete Bridge's references from Entities' entries
+    if (bridge.state == #Pending) {
+    // delete from pending from storage
+      switch(pendingFromBridgesStorage.get(bridge.fromEntityId)) {
+        case null {
+          return false;    
+        };
+        case (?entityEntry) {
+          // delete from entry for entityId by filtering out the bridge's id
+          let updatedEntityEntry : BridgeCategories = {
+            ownerCreatedBridges = List.filter<Text>(entityEntry.ownerCreatedBridges, func id { id !=  bridge.internalId });
+            otherBridges = List.filter<Text>(entityEntry.otherBridges, func id { id !=  bridge.internalId });
+          };
+          pendingFromBridgesStorage.put(bridge.fromEntityId, updatedEntityEntry);    
+        };
+      };
+    // delete from pending to storage
+      switch(pendingToBridgesStorage.get(bridge.toEntityId)) {
+        case null {
+          return false;    
+        };
+        case (?entityEntry) {
+          // delete from entry for entityId by filtering out the bridge's id
+          let updatedEntityEntry : BridgeCategories = {
+            ownerCreatedBridges = List.filter<Text>(entityEntry.ownerCreatedBridges, func id { id !=  bridge.internalId });
+            otherBridges = List.filter<Text>(entityEntry.otherBridges, func id { id !=  bridge.internalId });
+          };
+          pendingToBridgesStorage.put(bridge.toEntityId, updatedEntityEntry);    
+        };
+      };
+    } else {
+      // delete Bridge from Entities bridged to and from
+      // delete from storage for Bridges from Entity
+      switch(fromBridgesStorage.get(bridge.fromEntityId)) {
+        case null {
+          return false;   
+        };
+        case (?entityEntry) {
+          // delete from entry for entityId
+          let updatedEntityEntry : BridgeCategories = {
+            ownerCreatedBridges = List.filter<Text>(entityEntry.ownerCreatedBridges, func id { id !=  bridge.internalId });
+            otherBridges = List.filter<Text>(entityEntry.otherBridges, func id { id !=  bridge.internalId });
+          };
+          fromBridgesStorage.put(bridge.fromEntityId, updatedEntityEntry);    
+        };
+      };
+    // delete from storage for Bridges to Entity
+      switch(toBridgesStorage.get(bridge.toEntityId)) {
+        case null {
+          return false;   
+        };
+        case (?entityEntry) {
+          // delete from entry for entityId
+          let updatedEntityEntry : BridgeCategories = {
+            ownerCreatedBridges = List.filter<Text>(entityEntry.ownerCreatedBridges, func id { id !=  bridge.internalId });
+            otherBridges = List.filter<Text>(entityEntry.otherBridges, func id { id !=  bridge.internalId });
+          };
+          toBridgesStorage.put(bridge.toEntityId, updatedEntityEntry);    
+        };
+      };
+    };
+    
+    return true;
+  };
+
+  func deleteBridge(caller : Principal, bridgeId : Text) : async Types.BridgeResult {
+    switch(getBridge(bridgeId)) {
+      case null { return #Err(#BridgeNotFound); };
+      case (?bridgeToDelete) {
+        switch(Principal.equal(bridgeToDelete.owner, caller)) {
+          case false {
+            let errorText : Text = Principal.toText(caller);
+            return #Err(#Unauthorized errorText);
+          }; // Only owner may delete the Bridge
+          case true {
+            // TBD: other deletion constraints
+            switch(detachBridgeFromEntities(bridgeToDelete)) {
+              case false { 
+                assert(false); // Should roll back all changes (Something like this would be better: trap("Was Not Able to Delete the Bridge");)
+                return #Err(#Other "Unable to Delete the Bridge");
+              };
+              case true {         
+                switch(deleteBridgeFromStorage(bridgeId)) {
+                  case true {
+                    return #Ok(?bridgeToDelete);
+                  };
+                  case _ { 
+                    assert(false); // Should roll back all changes (Something like this would be better: trap("Was Not Able to Delete the Bridge");)
+                    return #Err(#Other "Unable to Delete the Bridge");
+                  };
+                };                          
+              };
+            };         
+          };
+        };
+      };
+    };
+  };
+
+  func updateBridge(caller : Principal, bridgeUpdateObject : BridgeEntity.BridgeEntityUpdateObject) : async Types.BridgeResult {
+    switch(getBridge(bridgeUpdateObject.internalId)) {
+      case null { return #Err(#BridgeNotFound); };
+      case (?bridgeToUpdate) {
+        switch(Principal.equal(bridgeToUpdate.owner, caller)) {
+          case false {
+            let errorText : Text = Principal.toText(caller);
+            return #Err(#Unauthorized errorText);
+          }; // Only owner may update the Bridge
+          case true {
+            // TBD: other update constraints
+            let updatedBridge : BridgeEntity.BridgeEntity = {
+              internalId : Text = bridgeToUpdate.internalId;
+              creationTimestamp : Nat64 = bridgeToUpdate.creationTimestamp;
+              creator : Principal = bridgeToUpdate.creator;
+              owner : Principal = bridgeToUpdate.owner;
+              settings : EntitySettings.EntitySettings = Option.get<EntitySettings.EntitySettings>(bridgeUpdateObject.settings, bridgeToUpdate.settings);
+              entityType : EntityType.EntityType = bridgeToUpdate.entityType;
+              name : ?Text = Option.get<?Text>(?bridgeUpdateObject.name, bridgeToUpdate.name);
+              description : ?Text = Option.get<?Text>(?bridgeUpdateObject.description, bridgeToUpdate.description);
+              keywords : ?[Text] = Option.get<?[Text]>(?bridgeUpdateObject.keywords, bridgeToUpdate.keywords);
+              externalId : ?Text = bridgeToUpdate.externalId;
+              entitySpecificFields : ?Text = bridgeToUpdate.entitySpecificFields;
+              listOfEntitySpecificFieldKeys : [Text] = bridgeToUpdate.listOfEntitySpecificFieldKeys;
+              bridgeType : BridgeType.BridgeType = Option.get<BridgeType.BridgeType>(bridgeUpdateObject.bridgeType, bridgeToUpdate.bridgeType);
+              fromEntityId : Text = bridgeToUpdate.fromEntityId;
+              toEntityId : Text = bridgeToUpdate.toEntityId;
+              state : BridgeState.BridgeState = Option.get<BridgeState.BridgeState>(bridgeUpdateObject.state, bridgeToUpdate.state);
+            };
+            let result = bridgesStorage.put(updatedBridge.internalId, updatedBridge);
+            return #Ok(?updatedBridge);        
+          };
+        };
+      };
+    };
+  };
+
+  func updateEntity(caller : Principal, entityUpdateObject : Entity.EntityUpdateObject) : async Types.EntityResult {
+    switch(getEntity(entityUpdateObject.internalId)) {
+      case null { return #Err(#EntityNotFound); };
+      case (?entityToUpdate) {
+        switch(Principal.equal(entityToUpdate.owner, caller)) {
+          case false {
+            let errorText : Text = Principal.toText(caller);
+            return #Err(#Unauthorized errorText);
+          }; // Only owner may update the Entity
+          case true {
+            // TBD: other update constraints
+            let updatedEntity : Entity.Entity = {
+              internalId : Text = entityToUpdate.internalId;
+              creationTimestamp : Nat64 = entityToUpdate.creationTimestamp;
+              creator : Principal = entityToUpdate.creator;
+              owner : Principal = entityToUpdate.owner;
+              settings : EntitySettings.EntitySettings = Option.get<EntitySettings.EntitySettings>(entityUpdateObject.settings, entityToUpdate.settings);
+              entityType : EntityType.EntityType = entityToUpdate.entityType;
+              name : ?Text = Option.get<?Text>(?entityUpdateObject.name, entityToUpdate.name);
+              description : ?Text = Option.get<?Text>(?entityUpdateObject.description, entityToUpdate.description);
+              keywords : ?[Text] = Option.get<?[Text]>(?entityUpdateObject.keywords, entityToUpdate.keywords);
+              externalId : ?Text = entityToUpdate.externalId;
+              entitySpecificFields : ?Text = entityToUpdate.entitySpecificFields;
+              listOfEntitySpecificFieldKeys : [Text] = entityToUpdate.listOfEntitySpecificFieldKeys;
+            };
+            let result = entitiesStorage.put(updatedEntity.internalId, updatedEntity);
+            return #Ok(?updatedEntity);      
+          };
+        };
       };
     };
   };

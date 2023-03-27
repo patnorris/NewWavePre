@@ -63,7 +63,9 @@ dfx wallet --network ic balance
 dfx canister --network ic status newwave
 dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 3000000000000 newwave
 
-2022-11-15: topped up 3.3T cycles, has balance of 7.2T
+2022-11-15: topped up 3.3T cycles, has balance of 7.2T (2023-02-20: basically hasn't changed)
+
+Fund wallet with cycles (from ICP): https://medium.com/dfinity/internet-computer-basics-part-3-funding-a-cycles-wallet-a724efebd111
 
 ## Dev notes
 
