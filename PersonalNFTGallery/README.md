@@ -76,7 +76,7 @@ dfx canister --network ic status PersonalNFTGallery_frontend
 dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 3000000000000 PersonalNFTGallery_backend
 dfx canister --network ic --wallet 3v5vy-2aaaa-aaaai-aapla-cai deposit-cycles 300000000000 PersonalNFTGallery_frontend
 
-2022-11-15: 3T for PersonalNFTGallery_backend (new balance: 6.8T); 3.3T for PersonalNFTGallery_frontend (new balance: 6.6T)
+2022-11-15: 3T for PersonalNFTGallery_backend (new balance: 6.8T); 3.3T for PersonalNFTGallery_frontend (new balance: 6.6T) (2023-02-20: basically haven't changed)
 
 To update placeholder image (only image on new gallery):
 in backend, uncomment function updatePlaceholderImage
